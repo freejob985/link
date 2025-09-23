@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../contexts/AppContext';
-import { Link } from '../types';
+import { Link, Group } from '../types';
 import { 
   PlusIcon, 
   PencilIcon, 
@@ -69,7 +69,7 @@ export function LinksPage() {
     return state.links.map(link => {
       const matchesSearch = searchTerm === '' || 
         link.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        link.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (link.description && link.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
         link.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesCategory = selectedCategory === '' || link.categoryId === selectedCategory;
@@ -229,6 +229,73 @@ export function LinksPage() {
   const handleOpenLink = (link: Link) => {
     recordClick(link.id);
     window.open(link.url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleOpenGroupLinks = async (group: Group) => {
+    const validLinks = group.linkIds
+      .map((id: string) => state.links.find((link: Link) => link.id === id))
+      .filter((link: Link | undefined): link is Link => link !== undefined);
+
+    if (validLinks.length === 0) {
+      toast.error('لا توجد روابط صالحة في هذه المجموعة');
+      return;
+    }
+
+    // عرض خيارات للمستخدم
+    const { value: action } = await Swal.fire({
+      title: `مجموعة: ${group.name}`,
+      text: `تحتوي على ${validLinks.length} رابط`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'فتح جميع الروابط',
+      cancelButtonText: 'اختيار رابط واحد',
+      reverseButtons: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#3b82f6'
+    });
+
+    if (action === true) {
+      // فتح جميع الروابط
+      let openedCount = 0;
+      validLinks.forEach((link: Link, index: number) => {
+        setTimeout(() => {
+          recordClick(link.id);
+          window.open(link.url, '_blank', 'noopener,noreferrer');
+          openedCount++;
+          
+          if (openedCount === validLinks.length) {
+            toast.success(`تم فتح جميع الروابط (${validLinks.length})`);
+          }
+        }, index * 200); // تأخير 200ms بين كل رابط لتجنب حظر المتصفح
+      });
+    } else if (action === false) {
+      // اختيار رابط واحد
+      const { value: selectedLinkId } = await Swal.fire({
+        title: 'اختر رابط للفتح',
+        input: 'select',
+        inputOptions: validLinks.reduce((acc: Record<string, string>, link: Link) => {
+          acc[link.id] = link.name;
+          return acc;
+        }, {} as Record<string, string>),
+        showCancelButton: true,
+        confirmButtonText: 'فتح',
+        cancelButtonText: 'إلغاء',
+        inputValidator: (value) => {
+          if (!value) {
+            return 'يرجى اختيار رابط';
+          }
+        }
+      });
+
+      if (selectedLinkId) {
+        const selectedLink = validLinks.find((link: Link) => link.id === selectedLinkId);
+        if (selectedLink) {
+          recordClick(selectedLink.id);
+          window.open(selectedLink.url, '_blank', 'noopener,noreferrer');
+          toast.success('تم فتح الرابط');
+        }
+      }
+    }
   };
 
   const handleCopyLink = async (url: string) => {
@@ -527,20 +594,27 @@ export function LinksPage() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-cairo">
             إدارة الروابط
           </h1>
-          <div className="flex items-center space-x-2 space-x-reverse">
+          <div className="flex items-center space-x-4 space-x-reverse">
             <button
               onClick={() => setShowMultiLinkForm(true)}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-green-700 transition-colors font-tajawal"
+              className="bg-green-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-green-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               <PlusIcon className="h-5 w-5 ml-2" />
               إضافة روابط متعددة
             </button>
             <button
               onClick={() => setShowForm(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition-colors font-tajawal"
+              className="bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-blue-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               <PlusIcon className="h-5 w-5 ml-2" />
               إضافة رابط
+            </button>
+            <button
+              onClick={handleAddGroup}
+              className="bg-purple-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-purple-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              <TagIcon className="h-5 w-5 ml-2" />
+              إضافة مجموعة
             </button>
           </div>
         </div>
@@ -611,6 +685,37 @@ export function LinksPage() {
           </div>
         </div>
       </div>
+
+      {/* قائمة المجموعات */}
+      {state.groups.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 font-cairo">المجموعات</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {state.groups.map(group => {
+              const groupLinks = group.linkIds
+                .map((id: string) => state.links.find((link: Link) => link.id === id))
+                .filter((link: Link | undefined): link is Link => link !== undefined);
+              
+              return (
+                <div key={group.id} className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-700 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleOpenGroupLinks(group)}>
+                  <div className="flex items-center mb-2">
+                    <TagIcon className="h-5 w-5 text-purple-600 ml-2" />
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white font-tajawal">
+                      {group.name}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-tajawal">
+                    {groupLinks.length} رابط
+                  </p>
+                  <div className="mt-2 text-xs text-purple-600 dark:text-purple-400 font-tajawal">
+                    اضغط لفتح جميع الروابط
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* قائمة الروابط */}
       <div className="flex-1 overflow-y-auto p-4 w-full">
@@ -768,10 +873,10 @@ export function LinksPage() {
       {/* قائمة السياق */}
       {showContextMenu && (
         <div
-          className="fixed bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50 min-w-48"
+          className="fixed bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-3 z-50 min-w-64"
           style={{ left: contextMenuPosition.x, top: contextMenuPosition.y }}
         >
-          <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+          <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">إضافة سريع</h3>
           </div>
           
@@ -780,7 +885,7 @@ export function LinksPage() {
               setShowForm(true);
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900 w-full text-right transition-colors"
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
           >
             <LinkIcon className="h-4 w-4 ml-3 text-blue-600" />
             <div>
@@ -794,7 +899,7 @@ export function LinksPage() {
               setShowMultiLinkForm(true);
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900 w-full text-right transition-colors"
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
           >
             <PlusIcon className="h-4 w-4 ml-3 text-green-600" />
             <div>
@@ -803,14 +908,14 @@ export function LinksPage() {
             </div>
           </button>
           
-          <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+          <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
           
           <button
             onClick={() => {
               handleAddCategory();
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900 w-full text-right transition-colors"
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
           >
             <FolderPlusIcon className="h-4 w-4 ml-3 text-purple-600" />
             <div>
@@ -824,7 +929,7 @@ export function LinksPage() {
               handleAddSubcategory();
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900 w-full text-right transition-colors"
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
           >
             <FolderPlusIcon className="h-4 w-4 ml-3 text-orange-600" />
             <div>
@@ -838,12 +943,74 @@ export function LinksPage() {
               handleAddGroup();
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900 w-full text-right transition-colors"
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
           >
             <TagIcon className="h-4 w-4 ml-3 text-indigo-600" />
             <div>
               <div className="font-medium">إضافة مجموعة</div>
               <div className="text-xs text-gray-500">إنشاء مجموعة روابط</div>
+            </div>
+          </button>
+
+          <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+          
+          <div className="px-4 py-2">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">التنقل</h3>
+          </div>
+          
+          <button
+            onClick={() => {
+              window.location.href = '/';
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <LinkIcon className="h-4 w-4 ml-3 text-gray-600" />
+            <div>
+              <div className="font-medium">الروابط</div>
+              <div className="text-xs text-gray-500">عرض جميع الروابط</div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => {
+              window.location.href = '/categories';
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <FolderPlusIcon className="h-4 w-4 ml-3 text-gray-600" />
+            <div>
+              <div className="font-medium">الأقسام</div>
+              <div className="text-xs text-gray-500">إدارة الأقسام</div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => {
+              window.location.href = '/groups';
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <TagIcon className="h-4 w-4 ml-3 text-gray-600" />
+            <div>
+              <div className="font-medium">المجموعات</div>
+              <div className="text-xs text-gray-500">إدارة المجموعات</div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => {
+              window.location.href = '/stats';
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <ChartBarIcon className="h-4 w-4 ml-3 text-gray-600" />
+            <div>
+              <div className="font-medium">الإحصائيات</div>
+              <div className="text-xs text-gray-500">عرض الإحصائيات</div>
             </div>
           </button>
         </div>

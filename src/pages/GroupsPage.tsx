@@ -16,6 +16,7 @@ export function GroupsPage() {
   const { state, addGroup, updateGroup, deleteGroup, recordClick } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   
   const [formData, setFormData] = useState({
     name: '',
@@ -87,14 +88,35 @@ export function GroupsPage() {
       return;
     }
 
-    if (validLinks.length === 1) {
-      // فتح رابط واحد فقط
-      const link = validLinks[0];
-      recordClick(link.id);
-      window.open(link.url, '_blank', 'noopener,noreferrer');
-      toast.success('تم فتح الرابط');
-    } else {
-      // عرض قائمة للاختيار من بين عدة روابط
+    // عرض خيارات للمستخدم
+    const { value: action } = await Swal.fire({
+      title: `مجموعة: ${group.name}`,
+      text: `تحتوي على ${validLinks.length} رابط`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'فتح جميع الروابط',
+      cancelButtonText: 'اختيار رابط واحد',
+      reverseButtons: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#3b82f6'
+    });
+
+    if (action === true) {
+      // فتح جميع الروابط
+      let openedCount = 0;
+      validLinks.forEach((link, index) => {
+        setTimeout(() => {
+          recordClick(link.id);
+          window.open(link.url, '_blank', 'noopener,noreferrer');
+          openedCount++;
+          
+          if (openedCount === validLinks.length) {
+            toast.success(`تم فتح جميع الروابط (${validLinks.length})`);
+          }
+        }, index * 200); // تأخير 200ms بين كل رابط لتجنب حظر المتصفح
+      });
+    } else if (action === false) {
+      // اختيار رابط واحد
       const { value: selectedLinkId } = await Swal.fire({
         title: 'اختر رابط للفتح',
         input: 'select',
@@ -142,6 +164,18 @@ export function GroupsPage() {
     const category = state.categories.find(c => c.id === categoryId);
     return category?.name || '';
   };
+
+  // تصفية الروابط بناءً على البحث
+  const filteredLinks = state.links.filter(link => {
+    if (!searchTerm) return true;
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      link.name.toLowerCase().includes(searchLower) ||
+      (link.description && link.description.toLowerCase().includes(searchLower)) ||
+      link.tags.some(tag => tag.toLowerCase().includes(searchLower)) ||
+      getCategoryName(link.categoryId).toLowerCase().includes(searchLower)
+    );
+  });
 
   return (
     <div className="space-y-6">
