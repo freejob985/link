@@ -276,23 +276,43 @@ export function LinksPage() {
   };
 
   const handleAddCategory = async () => {
-    const { value: name } = await Swal.fire({
-      title: 'إضافة قسم جديد',
-      input: 'text',
-      inputLabel: 'اسم القسم',
-      inputPlaceholder: 'أدخل اسم القسم',
+    const { value: names } = await Swal.fire({
+      title: 'إضافة أقسام جديدة',
+      html: `
+        <div class="text-right space-y-4">
+          <div class="bg-blue-50 rounded-lg p-3">
+            <p class="text-sm text-blue-800">يمكنك إضافة عدة أقسام في كل سطر</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">أسماء الأقسام (سطر واحد لكل قسم)</label>
+            <textarea id="categoryNames" 
+                      placeholder="قسم التصميم&#10;قسم البرمجة&#10;قسم التسويق"
+                      class="w-full h-32 p-3 border border-gray-300 rounded-lg text-right resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows="4"></textarea>
+          </div>
+        </div>
+      `,
       showCancelButton: true,
-      confirmButtonText: 'إضافة',
+      confirmButtonText: 'إضافة جميع الأقسام',
       cancelButtonText: 'إلغاء',
-      inputValidator: (value) => {
-        if (!value) {
-          return 'يرجى إدخال اسم القسم';
+      preConfirm: () => {
+        const textarea = document.getElementById('categoryNames') as HTMLTextAreaElement;
+        const names = textarea.value.split('\n').filter(name => name.trim());
+        if (names.length === 0) {
+          Swal.showValidationMessage('يرجى إدخال اسم قسم واحد على الأقل');
+          return false;
         }
+        return names;
       }
     });
 
-    if (name) {
-      addCategory(name);
+    if (names && names.length > 0) {
+      names.forEach((name: string) => {
+        if (name.trim()) {
+          addCategory(name.trim());
+        }
+      });
+      toast.success(`تم إضافة ${names.length} قسم بنجاح`);
     }
   };
 
@@ -315,23 +335,43 @@ export function LinksPage() {
     });
 
     if (categoryId) {
-      const { value: name } = await Swal.fire({
-        title: 'إضافة قسم فرعي',
-        input: 'text',
-        inputLabel: 'اسم القسم الفرعي',
-        inputPlaceholder: 'أدخل اسم القسم الفرعي',
+      const { value: names } = await Swal.fire({
+        title: 'إضافة أقسام فرعية جديدة',
+        html: `
+          <div class="text-right space-y-4">
+            <div class="bg-green-50 rounded-lg p-3">
+              <p class="text-sm text-green-800">يمكنك إضافة عدة أقسام فرعية في كل سطر</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">أسماء الأقسام الفرعية (سطر واحد لكل قسم)</label>
+              <textarea id="subcategoryNames" 
+                        placeholder="UI/UX&#10;جرافيك&#10;تصميم ويب"
+                        class="w-full h-32 p-3 border border-gray-300 rounded-lg text-right resize-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        rows="4"></textarea>
+            </div>
+          </div>
+        `,
         showCancelButton: true,
-        confirmButtonText: 'إضافة',
+        confirmButtonText: 'إضافة جميع الأقسام الفرعية',
         cancelButtonText: 'إلغاء',
-        inputValidator: (value) => {
-          if (!value) {
-            return 'يرجى إدخال اسم القسم الفرعي';
+        preConfirm: () => {
+          const textarea = document.getElementById('subcategoryNames') as HTMLTextAreaElement;
+          const names = textarea.value.split('\n').filter(name => name.trim());
+          if (names.length === 0) {
+            Swal.showValidationMessage('يرجى إدخال اسم قسم فرعي واحد على الأقل');
+            return false;
           }
+          return names;
         }
       });
 
-      if (name) {
-        addSubcategory(name, categoryId);
+      if (names && names.length > 0) {
+        names.forEach((name: string) => {
+          if (name.trim()) {
+            addSubcategory(name.trim(), categoryId);
+          }
+        });
+        toast.success(`تم إضافة ${names.length} قسم فرعي بنجاح`);
       }
     }
   };
@@ -360,14 +400,75 @@ export function LinksPage() {
     if (name) {
       const { value: linkIds } = await Swal.fire({
         title: 'اختر الروابط',
-        input: 'checkbox',
-        inputOptions: state.links.reduce((acc, link) => {
-          acc[link.id] = link.name;
-          return acc;
-        }, {} as Record<string, string>),
+        html: `
+          <div class="text-right space-y-4">
+            <div class="relative">
+              <input type="text" id="linkSearch" placeholder="البحث في الروابط..." 
+                     class="w-full p-3 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <div class="absolute left-3 top-3 text-gray-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-2">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-medium text-gray-700">الروابط المتاحة</span>
+                <span id="selectedCount" class="text-sm text-blue-600 font-medium">0 محدد</span>
+              </div>
+              <div id="linkList" class="max-h-60 overflow-y-auto space-y-1">
+                ${state.links.map(link => `
+                  <label class="flex items-center p-3 hover:bg-blue-50 rounded-lg cursor-pointer transition-colors border border-transparent hover:border-blue-200">
+                    <input type="checkbox" value="${link.id}" class="ml-3 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <div class="flex-1">
+                      <div class="font-medium text-gray-900">${link.name}</div>
+                      <div class="text-xs text-gray-500">${link.url}</div>
+                    </div>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `,
         showCancelButton: true,
         confirmButtonText: 'إضافة',
-        cancelButtonText: 'إلغاء'
+        cancelButtonText: 'إلغاء',
+        didOpen: () => {
+          const searchInput = document.getElementById('linkSearch') as HTMLInputElement;
+          const linkList = document.getElementById('linkList');
+          const selectedCount = document.getElementById('selectedCount');
+          
+          if (searchInput && linkList) {
+            searchInput.addEventListener('input', (e) => {
+              const searchTerm = (e.target as HTMLInputElement).value.toLowerCase();
+              const labels = linkList.querySelectorAll('label');
+              
+              labels.forEach(label => {
+                const text = label.textContent?.toLowerCase() || '';
+                if (text.includes(searchTerm)) {
+                  label.style.display = 'flex';
+                } else {
+                  label.style.display = 'none';
+                }
+              });
+            });
+          }
+
+          // تحديث عداد الروابط المحددة
+          if (linkList && selectedCount) {
+            const updateCount = () => {
+              const checkedBoxes = linkList.querySelectorAll('input[type="checkbox"]:checked');
+              selectedCount.textContent = `${checkedBoxes.length} محدد`;
+            };
+
+            linkList.addEventListener('change', updateCount);
+            updateCount();
+          }
+        },
+        preConfirm: () => {
+          const checkboxes = document.querySelectorAll('#linkList input[type="checkbox"]:checked');
+          return Array.from(checkboxes).map(cb => (cb as HTMLInputElement).value);
+        }
       });
 
       if (linkIds && linkIds.length > 0) {
@@ -667,48 +768,83 @@ export function LinksPage() {
       {/* قائمة السياق */}
       {showContextMenu && (
         <div
-          className="fixed bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50"
+          className="fixed bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50 min-w-48"
           style={{ left: contextMenuPosition.x, top: contextMenuPosition.y }}
         >
+          <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">إضافة سريع</h3>
+          </div>
+          
           <button
             onClick={() => {
               setShowForm(true);
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-right"
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900 w-full text-right transition-colors"
           >
-            <LinkIcon className="h-4 w-4 ml-2" />
-            إضافة رابط
+            <LinkIcon className="h-4 w-4 ml-3 text-blue-600" />
+            <div>
+              <div className="font-medium">إضافة رابط</div>
+              <div className="text-xs text-gray-500">إضافة رابط جديد</div>
+            </div>
           </button>
+          
+          <button
+            onClick={() => {
+              setShowMultiLinkForm(true);
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900 w-full text-right transition-colors"
+          >
+            <PlusIcon className="h-4 w-4 ml-3 text-green-600" />
+            <div>
+              <div className="font-medium">إضافة روابط متعددة</div>
+              <div className="text-xs text-gray-500">إضافة عدة روابط مرة واحدة</div>
+            </div>
+          </button>
+          
+          <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+          
           <button
             onClick={() => {
               handleAddCategory();
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-right"
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900 w-full text-right transition-colors"
           >
-            <FolderPlusIcon className="h-4 w-4 ml-2" />
-            إضافة قسم
+            <FolderPlusIcon className="h-4 w-4 ml-3 text-purple-600" />
+            <div>
+              <div className="font-medium">إضافة قسم رئيسي</div>
+              <div className="text-xs text-gray-500">إضافة أقسام جديدة</div>
+            </div>
           </button>
+          
           <button
             onClick={() => {
               handleAddSubcategory();
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-right"
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900 w-full text-right transition-colors"
           >
-            <FolderPlusIcon className="h-4 w-4 ml-2" />
-            إضافة قسم فرعي
+            <FolderPlusIcon className="h-4 w-4 ml-3 text-orange-600" />
+            <div>
+              <div className="font-medium">إضافة قسم فرعي</div>
+              <div className="text-xs text-gray-500">إضافة أقسام فرعية</div>
+            </div>
           </button>
+          
           <button
             onClick={() => {
               handleAddGroup();
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-right"
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900 w-full text-right transition-colors"
           >
-            <TagIcon className="h-4 w-4 ml-2" />
-            إضافة مجموعة
+            <TagIcon className="h-4 w-4 ml-3 text-indigo-600" />
+            <div>
+              <div className="font-medium">إضافة مجموعة</div>
+              <div className="text-xs text-gray-500">إنشاء مجموعة روابط</div>
+            </div>
           </button>
         </div>
       )}
