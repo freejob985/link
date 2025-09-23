@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Link, Group } from '../types';
 import { 
@@ -32,7 +32,7 @@ interface LinksPageProps {
 }
 
 export function LinksPage({ onNavigate }: LinksPageProps = {}) {
-  const { state, addLink, updateLink, deleteLink, recordClick, addCategory, addSubcategory, addGroup, exportData, importData, toggleGroupVisibility, toggleGroupsSection } = useApp();
+  const { state, addLink, updateLink, deleteLink, recordClick, addCategory, addSubcategory, addGroup, exportData, importData, toggleGroupVisibility, toggleGroupsSection, toggleLinksSection } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [editingLink, setEditingLink] = useState<Link | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -123,6 +123,157 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
     }
   }, [showContextMenu]);
 
+  // إغلاق جميع الموديلات بالضغط على ESC
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        // إغلاق جميع الموديلات والنماذج
+        if (showForm) {
+          resetForm();
+        }
+        if (showMultiLinkForm) {
+          resetMultiForm();
+        }
+        if (showContextMenu) {
+          setShowContextMenu(false);
+        }
+        
+        // إغلاق SweetAlert2 إذا كان مفتوحاً
+        if (document.querySelector('.swal2-container')) {
+          Swal.close();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showForm, showMultiLinkForm, showContextMenu]);
+
+
+  // إضافة keyboard shortcuts للموديلات
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Enter لإرسال النماذج
+      if (event.key === 'Enter' && !event.shiftKey) {
+        if (showForm) {
+          const form = document.querySelector('form');
+          if (form) {
+            const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+            if (submitButton && !submitButton.disabled) {
+              submitButton.click();
+            }
+          }
+        }
+        if (showMultiLinkForm) {
+          const form = document.querySelector('form');
+          if (form) {
+            const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+            if (submitButton && !submitButton.disabled) {
+              submitButton.click();
+            }
+          }
+        }
+      }
+    };
+
+    if (showForm || showMultiLinkForm) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [showForm, showMultiLinkForm]);
+
+  // إضافة keyboard shortcuts للبحث
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl/Cmd + F للبحث
+      if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+        event.preventDefault();
+        const searchInput = document.querySelector('input[placeholder*="البحث"]') as HTMLInputElement;
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // إضافة keyboard shortcuts للتنقل
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl/Cmd + 1 للانتقال للروابط
+      if ((event.ctrlKey || event.metaKey) && event.key === '1') {
+        event.preventDefault();
+        onNavigate?.('links');
+      }
+      
+      // Ctrl/Cmd + 2 للانتقال للأقسام
+      if ((event.ctrlKey || event.metaKey) && event.key === '2') {
+        event.preventDefault();
+        onNavigate?.('categories');
+      }
+      
+      // Ctrl/Cmd + 3 للانتقال للمجموعات
+      if ((event.ctrlKey || event.metaKey) && event.key === '3') {
+        event.preventDefault();
+        onNavigate?.('groups');
+      }
+      
+      // Ctrl/Cmd + 4 للانتقال للإحصائيات
+      if ((event.ctrlKey || event.metaKey) && event.key === '4') {
+        event.preventDefault();
+        onNavigate?.('stats');
+      }
+      
+      // Ctrl/Cmd + 5 لإخفاء/إظهار قسم إدارة الروابط
+      if ((event.ctrlKey || event.metaKey) && event.key === '5') {
+        event.preventDefault();
+        toggleLinksSection();
+      }
+      
+      // Ctrl/Cmd + 6 لإخفاء/إظهار قسم المجموعات
+      if ((event.ctrlKey || event.metaKey) && event.key === '6') {
+        event.preventDefault();
+        toggleGroupsSection();
+      }
+      
+      // Ctrl/Cmd + 7 لإخفاء/إظهار قسم البحث والتصفية
+      if ((event.ctrlKey || event.metaKey) && event.key === '7') {
+        event.preventDefault();
+        // يمكن إضافة ميزة إخفاء/إظهار قسم البحث والتصفية لاحقاً
+      }
+      
+      // Ctrl/Cmd + 8 لإخفاء/إظهار قسم البحث والتصفية
+      if ((event.ctrlKey || event.metaKey) && event.key === '8') {
+        event.preventDefault();
+        // يمكن إضافة ميزة إخفاء/إظهار قسم البحث والتصفية لاحقاً
+      }
+      
+      // Ctrl/Cmd + 9 لإخفاء/إظهار قسم البحث والتصفية
+      if ((event.ctrlKey || event.metaKey) && event.key === '9') {
+        event.preventDefault();
+        // يمكن إضافة ميزة إخفاء/إظهار قسم البحث والتصفية لاحقاً
+      }
+      
+      // Ctrl/Cmd + 0 لإخفاء/إظهار قسم البحث والتصفية
+      if ((event.ctrlKey || event.metaKey) && event.key === '0') {
+        event.preventDefault();
+        // يمكن إضافة ميزة إخفاء/إظهار قسم البحث والتصفية لاحقاً
+      }
+      
+      // Ctrl/Cmd + - لإخفاء/إظهار قسم البحث والتصفية
+      if ((event.ctrlKey || event.metaKey) && event.key === '-') {
+        event.preventDefault();
+        // يمكن إضافة ميزة إخفاء/إظهار قسم البحث والتصفية لاحقاً
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onNavigate, toggleLinksSection, toggleGroupsSection]);
+
+
   // تصفية الروابط مع التمييز
   const filteredLinks = useMemo(() => {
     return state.links.map(link => {
@@ -151,6 +302,172 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
     const startIndex = (currentPage - 1) * linksPerPage;
     return filteredLinks.slice(startIndex, startIndex + linksPerPage);
   }, [filteredLinks, currentPage, linksPerPage]);
+
+  // إضافة keyboard shortcuts للتنقل بين الصفحات
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // السهم الأيسر للصفحة السابقة
+      if (event.key === 'ArrowLeft' && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        setCurrentPage(prev => Math.max(prev - 1, 1));
+      }
+      
+      // السهم الأيمن للصفحة التالية
+      if (event.key === 'ArrowRight' && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        setCurrentPage(prev => Math.min(prev + 1, totalPages));
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [totalPages]);
+
+  // إضافة keyboard shortcuts للتنقل بين الروابط
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // السهم الأعلى للرابط السابق
+      if (event.key === 'ArrowUp' && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        const currentLink = document.querySelector('.link-card:focus');
+        if (currentLink) {
+          const prevLink = currentLink.previousElementSibling as HTMLElement;
+          if (prevLink) {
+            prevLink.focus();
+          }
+        }
+      }
+      
+      // السهم الأسفل للرابط التالي
+      if (event.key === 'ArrowDown' && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        const currentLink = document.querySelector('.link-card:focus');
+        if (currentLink) {
+          const nextLink = currentLink.nextElementSibling as HTMLElement;
+          if (nextLink) {
+            nextLink.focus();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // إضافة keyboard shortcuts للتنقل بين الروابط
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Enter لفتح الرابط المحدد
+      if (event.key === 'Enter' && !event.ctrlKey && !event.metaKey) {
+        const focusedLink = document.querySelector('.link-card:focus') as HTMLElement;
+        if (focusedLink) {
+          event.preventDefault();
+          focusedLink.click();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // إضافة keyboard shortcuts للتنقل بين الروابط
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Space لفتح الرابط المحدد
+      if (event.key === ' ' && !event.ctrlKey && !event.metaKey) {
+        const focusedLink = document.querySelector('.link-card:focus') as HTMLElement;
+        if (focusedLink) {
+          event.preventDefault();
+          focusedLink.click();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // إضافة keyboard shortcuts للتنقل بين الروابط
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Delete لحذف الرابط المحدد
+      if (event.key === 'Delete' && !event.ctrlKey && !event.metaKey) {
+        const focusedLink = document.querySelector('.link-card:focus');
+        if (focusedLink) {
+          event.preventDefault();
+          const deleteButton = focusedLink.querySelector('button[title="حذف"]') as HTMLButtonElement;
+          if (deleteButton) {
+            deleteButton.click();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // إضافة keyboard shortcuts للتنقل بين الروابط
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // E لتعديل الرابط المحدد
+      if (event.key === 'e' && !event.ctrlKey && !event.metaKey) {
+        const focusedLink = document.querySelector('.link-card:focus');
+        if (focusedLink) {
+          event.preventDefault();
+          const editButton = focusedLink.querySelector('button[title="تعديل"]') as HTMLButtonElement;
+          if (editButton) {
+            editButton.click();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // إضافة keyboard shortcuts للتنقل بين الروابط
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // C لنسخ الرابط المحدد
+      if (event.key === 'c' && !event.ctrlKey && !event.metaKey) {
+        const focusedLink = document.querySelector('.link-card:focus');
+        if (focusedLink) {
+          event.preventDefault();
+          const copyButton = focusedLink.querySelector('button[title="نسخ الرابط"]') as HTMLButtonElement;
+          if (copyButton) {
+            copyButton.click();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // إضافة keyboard shortcuts للتنقل بين الروابط
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // O لفتح الرابط المحدد
+      if (event.key === 'o' && !event.ctrlKey && !event.metaKey) {
+        const focusedLink = document.querySelector('.link-card:focus');
+        if (focusedLink) {
+          event.preventDefault();
+          const openButton = focusedLink.querySelector('button[title="فتح الرابط"]') as HTMLButtonElement;
+          if (openButton) {
+            openButton.click();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // إعادة تعيين الصفحة عند تغيير التصفية
   useEffect(() => {
@@ -277,7 +594,9 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
       cancelButtonColor: '#6b7280',
       confirmButtonText: 'نعم، احذف',
       cancelButtonText: 'إلغاء',
-      reverseButtons: true
+      reverseButtons: true,
+      allowEscapeKey: true,
+      allowOutsideClick: true
     });
 
     if (result.isConfirmed) {
@@ -310,7 +629,9 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
       cancelButtonText: 'اختيار رابط واحد',
       reverseButtons: true,
       confirmButtonColor: '#10b981',
-      cancelButtonColor: '#3b82f6'
+      cancelButtonColor: '#3b82f6',
+      allowEscapeKey: true,
+      allowOutsideClick: true
     });
 
     if (action === true) {
@@ -343,7 +664,9 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
           if (!value) {
             return 'يرجى اختيار رابط';
           }
-        }
+        },
+        allowEscapeKey: true,
+        allowOutsideClick: true
       });
 
       if (selectedLinkId) {
@@ -420,46 +743,152 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
     }
   };
 
-  const handleAddCategory = async () => {
+  const handleAddCategory = useCallback(async () => {
     const { value: names } = await Swal.fire({
-      title: 'إضافة أقسام جديدة',
+      title: 'إضافة أقسام رئيسية جديدة',
+      allowEscapeKey: true,
+      allowOutsideClick: true,
       html: `
         <div class="text-right space-y-4">
-          <div class="bg-blue-50 rounded-lg p-3">
-            <p class="text-sm text-blue-800">يمكنك إضافة عدة أقسام في كل سطر</p>
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+            <div class="flex items-center mb-2">
+              <svg class="w-5 h-5 text-blue-600 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <h3 class="text-sm font-semibold text-blue-800 dark:text-blue-200">تعليمات الإضافة</h3>
+            </div>
+            <ul class="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+              <li>• اكتب اسم قسم واحد في كل سطر</li>
+              <li>• يمكنك إضافة عدة أقسام في نفس الوقت</li>
+              <li>• الأقسام الفارغة ستتم إزالتها تلقائياً</li>
+              <li>• الأقسام المكررة ستتم إزالتها</li>
+            </ul>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">أسماء الأقسام (سطر واحد لكل قسم)</label>
-            <textarea id="categoryNames" 
-                      placeholder="قسم التصميم&#10;قسم البرمجة&#10;قسم التسويق"
-                      class="w-full h-32 p-3 border border-gray-300 rounded-lg text-right resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows="4"></textarea>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              أسماء الأقسام الرئيسية
+            </label>
+            <div class="relative">
+              <textarea id="categoryNames" 
+                        placeholder="قسم التصميم&#10;قسم البرمجة&#10;قسم التسويق&#10;قسم المبيعات&#10;قسم الموارد البشرية"
+                        class="w-full h-40 p-4 border-2 border-gray-300 dark:border-gray-600 rounded-xl text-right resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white font-tajawal text-sm leading-relaxed"
+                        rows="6"></textarea>
+              <div class="absolute top-2 left-2 text-xs text-gray-400 dark:text-gray-500">
+                <span id="lineCount">0</span> أقسام
+              </div>
+            </div>
+            <div class="mt-2 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+              <span>مثال: قسم التصميم</span>
+              <span id="charCount">0</span>
+            </div>
           </div>
         </div>
       `,
       showCancelButton: true,
       confirmButtonText: 'إضافة جميع الأقسام',
       cancelButtonText: 'إلغاء',
+      confirmButtonColor: '#3b82f6',
+      cancelButtonColor: '#6b7280',
+      width: '600px',
+      didOpen: () => {
+        const textarea = document.getElementById('categoryNames') as HTMLTextAreaElement;
+        const lineCount = document.getElementById('lineCount');
+        const charCount = document.getElementById('charCount');
+        
+        if (textarea && lineCount && charCount) {
+          const updateCounts = () => {
+            const lines = textarea.value.split('\n').filter(line => line.trim());
+            lineCount.textContent = lines.length.toString();
+            charCount.textContent = textarea.value.length.toString();
+          };
+          
+          textarea.addEventListener('input', updateCounts);
+          updateCounts();
+        }
+      },
       preConfirm: () => {
         const textarea = document.getElementById('categoryNames') as HTMLTextAreaElement;
-        const names = textarea.value.split('\n').filter(name => name.trim());
+        const names = textarea.value
+          .split('\n')
+          .map(name => name.trim())
+          .filter(name => name.length > 0);
+        
         if (names.length === 0) {
           Swal.showValidationMessage('يرجى إدخال اسم قسم واحد على الأقل');
           return false;
         }
-        return names;
+        
+        // فحص الأقسام المكررة
+        const uniqueNames = [...new Set(names)];
+        if (uniqueNames.length !== names.length) {
+          Swal.showValidationMessage(`تم العثور على ${names.length - uniqueNames.length} قسم مكرر. سيتم إزالتها تلقائياً.`);
+        }
+        
+        // فحص الأقسام الموجودة مسبقاً
+        const existingCategories = state.categories.map(cat => cat.name.toLowerCase());
+        const duplicateExisting = names.filter(name => 
+          existingCategories.includes(name.toLowerCase())
+        );
+        
+        if (duplicateExisting.length > 0) {
+          Swal.showValidationMessage(`الأقسام التالية موجودة مسبقاً: ${duplicateExisting.join(', ')}`);
+          return false;
+        }
+        
+        return uniqueNames;
       }
     });
 
     if (names && names.length > 0) {
+      let addedCount = 0;
+      let skippedCount = 0;
+      
       names.forEach((name: string) => {
         if (name.trim()) {
-          addCategory(name.trim());
+          try {
+            addCategory(name.trim());
+            addedCount++;
+          } catch (error) {
+            console.error('خطأ في إضافة القسم:', name, error);
+            skippedCount++;
+          }
         }
       });
-      toast.success(`تم إضافة ${names.length} قسم بنجاح`);
+      
+      if (addedCount > 0) {
+        toast.success(`تم إضافة ${addedCount} قسم بنجاح`);
+      }
+      if (skippedCount > 0) {
+        toast.error(`فشل في إضافة ${skippedCount} قسم`);
+      }
     }
-  };
+  }, [addCategory, state.categories]);
+
+  // إضافة keyboard shortcuts إضافية
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl/Cmd + N لإضافة رابط جديد
+      if ((event.ctrlKey || event.metaKey) && event.key === 'n') {
+        event.preventDefault();
+        setShowForm(true);
+      }
+      
+      // Ctrl/Cmd + Shift + N لإضافة روابط متعددة
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'N') {
+        event.preventDefault();
+        setShowMultiLinkForm(true);
+      }
+      
+      // Ctrl/Cmd + Shift + C لإضافة قسم رئيسي
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'C') {
+        event.preventDefault();
+        handleAddCategory();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleAddCategory]);
 
   const handleAddSubcategory = async () => {
     if (state.categories.length === 0) {
@@ -476,47 +905,134 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
       }, {} as Record<string, string>),
       showCancelButton: true,
       confirmButtonText: 'متابعة',
-      cancelButtonText: 'إلغاء'
+      cancelButtonText: 'إلغاء',
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#6b7280',
+      allowEscapeKey: true,
+      allowOutsideClick: true
     });
 
     if (categoryId) {
+      const selectedCategory = state.categories.find(cat => cat.id === categoryId);
       const { value: names } = await Swal.fire({
-        title: 'إضافة أقسام فرعية جديدة',
+        title: `إضافة أقسام فرعية جديدة - ${selectedCategory?.name}`,
+        allowEscapeKey: true,
+        allowOutsideClick: true,
         html: `
           <div class="text-right space-y-4">
-            <div class="bg-green-50 rounded-lg p-3">
-              <p class="text-sm text-green-800">يمكنك إضافة عدة أقسام فرعية في كل سطر</p>
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+              <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-green-600 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h3 class="text-sm font-semibold text-green-800 dark:text-green-200">تعليمات الإضافة</h3>
+              </div>
+              <ul class="text-sm text-green-700 dark:text-green-300 space-y-1">
+                <li>• اكتب اسم قسم فرعي واحد في كل سطر</li>
+                <li>• يمكنك إضافة عدة أقسام فرعية في نفس الوقت</li>
+                <li>• الأقسام الفارغة ستتم إزالتها تلقائياً</li>
+                <li>• الأقسام المكررة ستتم إزالتها</li>
+              </ul>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">أسماء الأقسام الفرعية (سطر واحد لكل قسم)</label>
-              <textarea id="subcategoryNames" 
-                        placeholder="UI/UX&#10;جرافيك&#10;تصميم ويب"
-                        class="w-full h-32 p-3 border border-gray-300 rounded-lg text-right resize-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        rows="4"></textarea>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                أسماء الأقسام الفرعية
+              </label>
+              <div class="relative">
+                <textarea id="subcategoryNames" 
+                          placeholder="UI/UX&#10;جرافيك&#10;تصميم ويب&#10;تصميم تطبيقات&#10;تصميم شعارات"
+                          class="w-full h-40 p-4 border-2 border-gray-300 dark:border-gray-600 rounded-xl text-right resize-none focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-800 dark:text-white font-tajawal text-sm leading-relaxed"
+                          rows="6"></textarea>
+                <div class="absolute top-2 left-2 text-xs text-gray-400 dark:text-gray-500">
+                  <span id="subLineCount">0</span> أقسام فرعية
+                </div>
+              </div>
+              <div class="mt-2 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+                <span>مثال: UI/UX</span>
+                <span id="subCharCount">0</span>
+              </div>
             </div>
           </div>
         `,
         showCancelButton: true,
         confirmButtonText: 'إضافة جميع الأقسام الفرعية',
         cancelButtonText: 'إلغاء',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        width: '600px',
+        didOpen: () => {
+          const textarea = document.getElementById('subcategoryNames') as HTMLTextAreaElement;
+          const lineCount = document.getElementById('subLineCount');
+          const charCount = document.getElementById('subCharCount');
+          
+          if (textarea && lineCount && charCount) {
+            const updateCounts = () => {
+              const lines = textarea.value.split('\n').filter(line => line.trim());
+              lineCount.textContent = lines.length.toString();
+              charCount.textContent = textarea.value.length.toString();
+            };
+            
+            textarea.addEventListener('input', updateCounts);
+            updateCounts();
+          }
+        },
         preConfirm: () => {
           const textarea = document.getElementById('subcategoryNames') as HTMLTextAreaElement;
-          const names = textarea.value.split('\n').filter(name => name.trim());
+          const names = textarea.value
+            .split('\n')
+            .map(name => name.trim())
+            .filter(name => name.length > 0);
+          
           if (names.length === 0) {
             Swal.showValidationMessage('يرجى إدخال اسم قسم فرعي واحد على الأقل');
             return false;
           }
-          return names;
+          
+          // فحص الأقسام الفرعية المكررة
+          const uniqueNames = [...new Set(names)];
+          if (uniqueNames.length !== names.length) {
+            Swal.showValidationMessage(`تم العثور على ${names.length - uniqueNames.length} قسم فرعي مكرر. سيتم إزالتها تلقائياً.`);
+          }
+          
+          // فحص الأقسام الفرعية الموجودة مسبقاً في نفس القسم الرئيسي
+          const existingSubcategories = state.subcategories
+            .filter(sub => sub.categoryId === categoryId)
+            .map(sub => sub.name.toLowerCase());
+          const duplicateExisting = names.filter(name => 
+            existingSubcategories.includes(name.toLowerCase())
+          );
+          
+          if (duplicateExisting.length > 0) {
+            Swal.showValidationMessage(`الأقسام الفرعية التالية موجودة مسبقاً: ${duplicateExisting.join(', ')}`);
+            return false;
+          }
+          
+          return uniqueNames;
         }
       });
 
       if (names && names.length > 0) {
+        let addedCount = 0;
+        let skippedCount = 0;
+        
         names.forEach((name: string) => {
           if (name.trim()) {
-            addSubcategory(name.trim(), categoryId);
+            try {
+              addSubcategory(name.trim(), categoryId);
+              addedCount++;
+            } catch (error) {
+              console.error('خطأ في إضافة القسم الفرعي:', name, error);
+              skippedCount++;
+            }
           }
         });
-        toast.success(`تم إضافة ${names.length} قسم فرعي بنجاح`);
+        
+        if (addedCount > 0) {
+          toast.success(`تم إضافة ${addedCount} قسم فرعي بنجاح`);
+        }
+        if (skippedCount > 0) {
+          toast.error(`فشل في إضافة ${skippedCount} قسم فرعي`);
+        }
       }
     }
   };
@@ -539,12 +1055,16 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
         if (!value) {
           return 'يرجى إدخال اسم المجموعة';
         }
-      }
+      },
+      allowEscapeKey: true,
+      allowOutsideClick: true
     });
 
     if (name) {
       const { value: linkIds } = await Swal.fire({
         title: 'اختر الروابط',
+        allowEscapeKey: true,
+        allowOutsideClick: true,
         html: `
           <div class="text-right space-y-4">
             <div class="relative">
@@ -671,10 +1191,42 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-3">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-cairo">
-            إدارة الروابط
-          </h1>
           <div className="flex items-center space-x-4 space-x-reverse">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-cairo">
+              إدارة الروابط
+            </h1>
+            <button
+              onClick={toggleLinksSection}
+              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              title={state.linksSectionHidden ? 'إظهار أقسام إدارة الروابط (البحث والمجموعات)' : 'إخفاء أقسام إدارة الروابط (البحث والمجموعات)'}
+            >
+              {state.linksSectionHidden ? (
+                <EyeSlashIcon className="h-5 w-5" />
+              ) : (
+                <EyeIcon className="h-5 w-5" />
+              )}
+            </button>
+            {state.linksSectionHidden && (
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-tajawal">
+                (الروابط مرئية دائماً)
+              </span>
+            )}
+          </div>
+          <div className="flex items-center space-x-4 space-x-reverse">
+            <button
+              onClick={handleAddCategory}
+              className="bg-orange-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-orange-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              <FolderPlusIcon className="h-5 w-5 ml-2" />
+              إضافة أقسام رئيسية
+            </button>
+            <button
+              onClick={handleAddSubcategory}
+              className="bg-teal-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-teal-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              <FolderPlusIcon className="h-5 w-5 ml-2" />
+              إضافة أقسام فرعية
+            </button>
             <button
               onClick={() => setShowMultiLinkForm(true)}
               className="bg-green-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-green-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
@@ -701,7 +1253,8 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
       </div>
 
       {/* البحث والتصفية */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-4">
+      {!state.linksSectionHidden && (
+        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="relative">
             <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-3 text-gray-400" />
@@ -764,7 +1317,8 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
             {filteredLinks.length} من {state.links.length}
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* زر إظهار قسم المجموعات عندما يكون مخفياً */}
       {state.groups.length > 0 && state.groupsSectionHidden && (
@@ -857,9 +1411,6 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
         {filteredLinks.length > 0 && (
           <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <div className="flex justify-between items-center">
-              <p className="text-sm text-blue-700 dark:text-blue-300 font-tajawal">
-                💡 اضغط على أي كارد لفتح الرابط في صفحة جديدة
-              </p>
               {searchTerm && (
                 <div className="flex items-center text-xs text-yellow-700 dark:text-yellow-300 font-tajawal">
                   <span className="bg-yellow-200 dark:bg-yellow-800 px-2 py-1 rounded-full">
@@ -1044,6 +1595,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
         )}
       </div>
 
+
       {/* قائمة السياق */}
       {showContextMenu && (
         <div
@@ -1097,6 +1649,23 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
           >
             <ChartBarIcon className="h-4 w-4 ml-2 text-green-600" />
             <span className="font-medium">الإحصائيات</span>
+          </button>
+          
+          <button
+            onClick={() => {
+              toggleLinksSection();
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900 w-full text-right transition-colors"
+          >
+            {state.linksSectionHidden ? (
+              <EyeIcon className="h-4 w-4 ml-2 text-orange-600" />
+            ) : (
+              <EyeSlashIcon className="h-4 w-4 ml-2 text-orange-600" />
+            )}
+            <span className="font-medium">
+              {state.linksSectionHidden ? 'إظهار قسم إدارة الروابط' : 'إخفاء قسم إدارة الروابط'}
+            </span>
           </button>
 
           <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
@@ -1194,7 +1763,14 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
 
       {/* نموذج إضافة/تعديل الرابط */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              resetForm();
+            }
+          }}
+        >
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
@@ -1203,7 +1779,8 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
                 </h2>
                 <button
                   onClick={resetForm}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                  title="إغلاق (ESC)"
                 >
                   <XMarkIcon className="h-6 w-6" />
                 </button>
@@ -1376,7 +1953,14 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
 
       {/* نموذج إضافة روابط متعددة */}
       {showMultiLinkForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              resetMultiForm();
+            }
+          }}
+        >
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
@@ -1385,7 +1969,8 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
                 </h2>
                 <button
                   onClick={resetMultiForm}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                  title="إغلاق (ESC)"
                 >
                   <XMarkIcon className="h-6 w-6" />
                 </button>

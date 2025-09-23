@@ -8,6 +8,7 @@ interface AppState extends AppData {
   showSplash: boolean;
   sidebarCollapsed: boolean;
   groupsSectionHidden: boolean; // إخفاء قسم المجموعات بالكامل
+  linksSectionHidden: boolean; // إخفاء قسم إدارة الروابط بالكامل
 }
 
 type AppAction = 
@@ -15,6 +16,7 @@ type AppAction =
   | { type: 'SET_SPLASH'; payload: boolean }
   | { type: 'TOGGLE_SIDEBAR' }
   | { type: 'TOGGLE_GROUPS_SECTION' }
+  | { type: 'TOGGLE_LINKS_SECTION' }
   | { type: 'SET_DATA'; payload: AppData }
   | { type: 'ADD_LINK'; payload: Link }
   | { type: 'UPDATE_LINK'; payload: Link }
@@ -36,6 +38,7 @@ const initialState: AppState = {
   showSplash: true,
   sidebarCollapsed: false,
   groupsSectionHidden: false,
+  linksSectionHidden: false,
   links: [],
   categories: [],
   subcategories: [],
@@ -53,6 +56,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, sidebarCollapsed: !state.sidebarCollapsed };
     case 'TOGGLE_GROUPS_SECTION':
       return { ...state, groupsSectionHidden: !state.groupsSectionHidden };
+    case 'TOGGLE_LINKS_SECTION':
+      return { ...state, linksSectionHidden: !state.linksSectionHidden };
     case 'SET_DATA':
       return { ...state, ...action.payload };
     case 'ADD_LINK':
@@ -170,6 +175,7 @@ interface AppContextValue {
   toggleTheme: () => void;
   toggleSidebar: () => void;
   toggleGroupsSection: () => void;
+  toggleLinksSection: () => void;
   hideSplash: () => void;
   exportData: () => void;
   importData: (data: AppData) => void;
@@ -193,6 +199,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
         if (sidebarCollapsed) {
           dispatch({ type: 'TOGGLE_SIDEBAR' });
+        }
+        
+        const linksSectionHidden = localStorage.getItem('linksSectionHidden') === 'true';
+        if (linksSectionHidden) {
+          dispatch({ type: 'TOGGLE_LINKS_SECTION' });
         }
         
         const hasSeenSplash = localStorage.getItem('hasSeenSplash') === 'true';
@@ -229,6 +240,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem('sidebarCollapsed', state.sidebarCollapsed.toString());
   }, [state.sidebarCollapsed]);
+
+  // حفظ حالة قسم إدارة الروابط
+  useEffect(() => {
+    localStorage.setItem('linksSectionHidden', state.linksSectionHidden.toString());
+  }, [state.linksSectionHidden]);
   const addLink = (linkData: Omit<Link, 'id' | 'clicks' | 'createdAt' | 'updatedAt'>) => {
     const link: Link = {
       ...linkData,
@@ -379,6 +395,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'TOGGLE_GROUPS_SECTION' });
   };
 
+  const toggleLinksSection = () => {
+    dispatch({ type: 'TOGGLE_LINKS_SECTION' });
+  };
+
   const value: AppContextValue = {
     state,
     dispatch,
@@ -399,6 +419,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleTheme,
     toggleSidebar,
     toggleGroupsSection,
+    toggleLinksSection,
     hideSplash,
     exportData,
     importData
