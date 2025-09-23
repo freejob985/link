@@ -47,6 +47,43 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
   const [multiLinks, setMultiLinks] = useState<Array<{name: string, url: string}>>([{name: '', url: ''}]);
   const linksPerPage = 16;
 
+  // استخراج اسم الموقع من الرابط
+  const extractDomainName = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      let domain = urlObj.hostname;
+      
+      // إزالة www. من البداية
+      if (domain.startsWith('www.')) {
+        domain = domain.substring(4);
+      }
+      
+      // إزالة النطاقات الشائعة من النهاية
+      const commonTlds = [
+        'com', 'org', 'net', 'edu', 'gov', 'mil', 'int', 'co', 'io', 'me', 'us', 'uk', 'ca', 'au', 
+        'de', 'fr', 'es', 'it', 'nl', 'be', 'ch', 'at', 'se', 'no', 'dk', 'fi', 'pl', 'cz', 'hu', 
+        'ro', 'bg', 'hr', 'si', 'sk', 'lt', 'lv', 'ee', 'lu', 'mt', 'cy', 'ie', 'pt', 'gr', 'tr', 
+        'ru', 'ua', 'by', 'md', 'ge', 'am', 'az', 'kz', 'kg', 'tj', 'tm', 'uz', 'mn', 'cn', 'jp', 
+        'kr', 'th', 'vn', 'ph', 'id', 'my', 'sg', 'hk', 'tw', 'in', 'pk', 'bd', 'lk', 'mv', 'np', 
+        'bt', 'mm', 'la', 'kh', 'bn', 'tl', 'fj', 'pg', 'sb', 'vu', 'nc', 'pf', 'wf', 'ws', 'to', 
+        'tv', 'ki', 'nr', 'pw', 'mh', 'fm', 'mp', 'gu', 'as', 'vi', 'pr', 'do', 'ht', 'jm', 'tt', 
+        'bb', 'ag', 'kn', 'lc', 'vc', 'gd', 'dm', 'bs', 'bz', 'gt', 'sv', 'hn', 'ni', 'cr', 'pa', 'cu', 'mx'
+      ];
+      
+      // إزالة النطاقات الشائعة
+      for (const tld of commonTlds) {
+        if (domain.endsWith(`.${tld}`)) {
+          domain = domain.slice(0, -(tld.length + 1));
+          break;
+        }
+      }
+      
+      return domain;
+    } catch {
+      return '';
+    }
+  };
+
   const [formData, setFormData] = useState({
     name: '',
     url: '',
@@ -599,12 +636,14 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
   const highlightText = (text: string, searchTerm: string) => {
     if (!searchTerm) return text;
     
-    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    // تنظيف مصطلح البحث من الرموز الخاصة
+    const cleanSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${cleanSearchTerm})`, 'gi');
     const parts = text.split(regex);
     
     return parts.map((part, index) => 
       regex.test(part) ? (
-        <mark key={index} className="bg-yellow-200 dark:bg-yellow-800 px-1 rounded">
+        <mark key={index} className="bg-yellow-300 dark:bg-yellow-600 text-yellow-900 dark:text-yellow-100 px-1.5 py-0.5 rounded-md font-semibold shadow-sm border border-yellow-400 dark:border-yellow-500">
           {part}
         </mark>
       ) : part
@@ -817,16 +856,29 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
       <div className="flex-1 overflow-y-auto p-4 w-full">
         {filteredLinks.length > 0 && (
           <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <p className="text-sm text-blue-700 dark:text-blue-300 font-tajawal text-center">
-              💡 اضغط على أي كارد لفتح الرابط في صفحة جديدة
-            </p>
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-blue-700 dark:text-blue-300 font-tajawal">
+                💡 اضغط على أي كارد لفتح الرابط في صفحة جديدة
+              </p>
+              {searchTerm && (
+                <div className="flex items-center text-xs text-yellow-700 dark:text-yellow-300 font-tajawal">
+                  <span className="bg-yellow-200 dark:bg-yellow-800 px-2 py-1 rounded-full">
+                    {filteredLinks.filter(link => link.isHighlighted).length} نتيجة مطابقة
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         )}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 w-full">
           {paginatedLinks.map(link => (
             <div 
               key={link.id} 
-              className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 transform hover:border-blue-300 dark:hover:border-blue-600 group"
+              className={`rounded-lg shadow p-6 border transition-all duration-300 cursor-pointer hover:scale-105 transform group ${
+                link.isHighlighted 
+                  ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400 dark:border-yellow-500 shadow-yellow-200 dark:shadow-yellow-800 hover:shadow-yellow-300 dark:hover:shadow-yellow-700' 
+                  : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-600'
+              }`}
               onClick={() => {
                 recordClick(link.id);
                 window.open(link.url, '_blank', 'noopener,noreferrer');
@@ -868,10 +920,10 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
                   {link.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className={`px-2 py-1 rounded text-xs font-tajawal ${
+                      className={`px-2 py-1 rounded text-xs font-tajawal transition-all duration-200 ${
                         link.isHighlighted && tag.toLowerCase().includes(searchTerm.toLowerCase())
-                          ? 'bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100'
-                          : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+                          ? 'bg-yellow-300 dark:bg-yellow-600 text-yellow-900 dark:text-yellow-100 font-semibold shadow-sm border border-yellow-400 dark:border-yellow-500'
+                          : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800'
                       }`}
                     >
                       {link.isHighlighted ? highlightText(tag, searchTerm) : tag}
@@ -1223,13 +1275,14 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
                       رابط الأيقونة
                     </label>
                     <a
-                      href="https://www.flaticon.com/"
+                      href={`https://www.flaticon.com/search?word=${encodeURIComponent(extractDomainName(formData.url) || 'icon')}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-tajawal flex items-center"
+                      title={formData.url ? `البحث عن أيقونات لـ: ${extractDomainName(formData.url) || 'icon'}` : 'البحث عن أيقونات عامة'}
                     >
                       <ArrowTopRightOnSquareIcon className="h-3 w-3 ml-1" />
-                      Flaticon للمساعدة
+                      {formData.url ? `Flaticon (${extractDomainName(formData.url) || 'icon'})` : 'Flaticon للمساعدة'}
                     </a>
                   </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
