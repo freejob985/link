@@ -20,7 +20,7 @@ interface StatsPageProps {
 }
 
 export function StatsPage({ onNavigate }: StatsPageProps = {}) {
-  const { state, exportData, importData, addCategory, addSubcategory } = useApp();
+  const { state, exportData, importData, addCategory, addSubcategory, clearAllData } = useApp();
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
 
@@ -237,16 +237,10 @@ export function StatsPage({ onNavigate }: StatsPageProps = {}) {
 
     if (result.isConfirmed) {
       try {
-        // مسح جميع البيانات من localStorage
-        localStorage.removeItem('appData');
-        localStorage.removeItem('linksSectionHidden');
-        localStorage.removeItem('groupsSectionHidden');
-        localStorage.removeItem('theme');
-        localStorage.removeItem('sidebarCollapsed');
+        // استخدام دالة clearAllData من AppContext
+        clearAllData();
         
-        // إعادة تحميل الصفحة
-        window.location.reload();
-        
+        // إظهار رسالة النجاح
         await Swal.fire({
           title: 'تم بنجاح!',
           text: 'تم مسح جميع البيانات بنجاح',
@@ -256,6 +250,10 @@ export function StatsPage({ onNavigate }: StatsPageProps = {}) {
           allowEscapeKey: true,
           allowOutsideClick: true,
         });
+        
+        // إعادة تحميل الصفحة فوراً
+        window.location.reload();
+        
       } catch (error) {
         console.error('خطأ في مسح البيانات:', error);
         await Swal.fire({

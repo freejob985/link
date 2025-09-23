@@ -32,7 +32,7 @@ interface LinksPageProps {
 }
 
 export function LinksPage({ onNavigate }: LinksPageProps = {}) {
-  const { state, addLink, updateLink, deleteLink, recordClick, addCategory, addSubcategory, addGroup, exportData, importData, toggleGroupVisibility, toggleGroupsSection, toggleLinksSection } = useApp();
+  const { state, addLink, updateLink, deleteLink, recordClick, addCategory, addSubcategory, addGroup, exportData, importData, toggleGroupVisibility, toggleGroupsSection, toggleLinksSection, clearAllData } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [editingLink, setEditingLink] = useState<Link | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -1040,19 +1040,104 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
     }
   }, [state.categories, state.groups, addCategory, addGroup, addLink]);
 
+  const handleClearAllData = useCallback(async () => {
+    const result = await Swal.fire({
+      title: '⚠️ تحذير!',
+      html: `
+        <div class="text-right space-y-4">
+          <div class="bg-red-50 rounded-lg p-4 border border-red-200">
+            <div class="flex items-center mb-2">
+              <svg class="h-5 w-5 text-red-600 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <h3 class="text-lg font-semibold text-red-800">هذا الإجراء لا يمكن التراجع عنه!</h3>
+            </div>
+            <p class="text-sm text-red-700">سيتم حذف جميع البيانات التالية:</p>
+            <ul class="text-sm text-red-700 mt-2 space-y-1">
+              <li>• جميع الروابط (${state.links.length} رابط)</li>
+              <li>• جميع الأقسام الرئيسية (${state.categories.length} قسم)</li>
+              <li>• جميع الأقسام الفرعية (${state.subcategories.length} قسم فرعي)</li>
+              <li>• جميع المجموعات (${state.groups.length} مجموعة)</li>
+              <li>• جميع الإحصائيات والنقرات</li>
+            </ul>
+          </div>
+          <div class="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+            <p class="text-sm text-yellow-800">
+              <strong>نصيحة:</strong> تأكد من تصدير البيانات قبل المتابعة
+            </p>
+          </div>
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'نعم، احذف جميع البيانات',
+      cancelButtonText: 'إلغاء',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      allowEscapeKey: true,
+      allowOutsideClick: true,
+      input: 'text',
+      inputLabel: 'اكتب "حذف" للتأكيد',
+      inputPlaceholder: 'حذف',
+      inputValidator: (value: string) => {
+        if (value !== 'حذف') {
+          return 'يجب كتابة "حذف" للتأكيد';
+        }
+        return null;
+      }
+    });
+
+    if (result.isConfirmed) {
+      try {
+        // استخدام دالة clearAllData من AppContext
+        clearAllData();
+        
+        // إظهار رسالة النجاح
+        await Swal.fire({
+          title: 'تم بنجاح!',
+          text: 'تم مسح جميع البيانات بنجاح',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false,
+          allowEscapeKey: true,
+          allowOutsideClick: true,
+        });
+        
+        // إعادة تحميل الصفحة فوراً
+        window.location.reload();
+        
+      } catch (error) {
+        console.error('خطأ في مسح البيانات:', error);
+        await Swal.fire({
+          title: 'خطأ!',
+          text: 'حدث خطأ أثناء مسح البيانات',
+          icon: 'error',
+          allowEscapeKey: true,
+          allowOutsideClick: true,
+        });
+      }
+    }
+  }, [clearAllData, state.links.length, state.categories.length, state.subcategories.length, state.groups.length]);
+
   // useEffect منفصل لـ handleAddSampleData
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Ctrl/Cmd + Shift + D لإضافة بيانات تجريبية
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'D') {
-        event.preventDefault();
-        handleAddSampleData();
-      }
+        // Ctrl/Cmd + Shift + D لإضافة بيانات تجريبية
+        if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'D') {
+          event.preventDefault();
+          handleAddSampleData();
+        }
+
+        // Ctrl/Cmd + Shift + Delete لحذف جميع البيانات
+        if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'Delete') {
+          event.preventDefault();
+          handleClearAllData();
+        }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleAddSampleData]);
+  }, [handleAddSampleData, handleClearAllData]);
 
   const handleAddSubcategory = async () => {
     if (state.categories.length === 0) {
@@ -1392,6 +1477,15 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               إضافة بيانات تجريبية
             </button>
             <button
+              onClick={handleClearAllData}
+              className="bg-red-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-red-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              <svg className="h-5 w-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              مسح جميع البيانات
+            </button>
+            <button
               onClick={handleAddSubcategory}
               className="bg-teal-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-teal-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
@@ -1579,19 +1673,6 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
 
       {/* قائمة الروابط */}
       <div className="flex-1 overflow-y-auto p-4 w-full">
-        {filteredLinks.length > 0 && (
-          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <div className="flex justify-between items-center">
-              {searchTerm && (
-                <div className="flex items-center text-xs text-yellow-700 dark:text-yellow-300 font-tajawal">
-                  <span className="bg-yellow-200 dark:bg-yellow-800 px-2 py-1 rounded-full">
-                    {filteredLinks.filter(link => link.isHighlighted).length} نتيجة مطابقة
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 w-full">
           {paginatedLinks.map(link => (
             <div 

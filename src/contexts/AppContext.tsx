@@ -179,6 +179,7 @@ interface AppContextValue {
   hideSplash: () => void;
   exportData: () => void;
   importData: (data: AppData) => void;
+  clearAllData: () => void;
 }
 
 const AppContext = createContext<AppContextValue | undefined>(undefined);
@@ -387,6 +388,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toast.success('تم استيراد البيانات بنجاح');
   };
 
+  const clearAllData = () => {
+    // مسح جميع البيانات من localStorage
+    localStorage.clear();
+    
+    // مسح البيانات من الحالة
+    dispatch({ type: 'SET_DATA', payload: {
+      links: [],
+      categories: [],
+      subcategories: [],
+      groups: [],
+      clickRecords: []
+    }});
+    
+    toast.success('تم مسح جميع البيانات بنجاح');
+  };
+
   const toggleGroupVisibility = (id: string) => {
     dispatch({ type: 'TOGGLE_GROUP_VISIBILITY', payload: id });
   };
@@ -422,7 +439,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleLinksSection,
     hideSplash,
     exportData,
-    importData
+    importData,
+    clearAllData
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
