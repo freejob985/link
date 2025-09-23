@@ -48,15 +48,15 @@ function AppContent() {
   const renderPage = () => {
     switch (currentPage) {
       case 'links':
-        return <LinksPage />;
+        return <LinksPage onNavigate={setCurrentPage} />;
       case 'categories':
-        return <CategoriesPage />;
+        return <CategoriesPage onNavigate={setCurrentPage} />;
       case 'groups':
-        return <GroupsPage />;
+        return <GroupsPage onNavigate={setCurrentPage} />;
       case 'stats':
-        return <StatsPage />;
+        return <StatsPage onNavigate={setCurrentPage} />;
       default:
-        return <LinksPage />;
+        return <LinksPage onNavigate={setCurrentPage} />;
     }
   };
 

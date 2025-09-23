@@ -9,8 +9,6 @@ import {
   XMarkIcon,
   SunIcon,
   MoonIcon,
-  ArrowDownTrayIcon,
-  ArrowUpTrayIcon,
   ChevronDoubleRightIcon,
   ChevronDoubleLeftIcon
 } from '@heroicons/react/24/outline';
@@ -22,9 +20,8 @@ interface LayoutProps {
 }
 
 export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
-  const { state, toggleTheme, toggleSidebar, exportData } = useApp();
+  const { state, toggleTheme, toggleSidebar } = useApp();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
   // إضافة اختصار لوحة المفاتيح لإخفاء/إظهار القائمة الجانبية
   React.useEffect(() => {
@@ -46,33 +43,9 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
     { id: 'stats', name: 'الإحصائيات', icon: ChartBarIcon }
   ];
 
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY });
-  };
-
-  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const data = JSON.parse(event.target?.result as string);
-          // importData(data); // سيتم تنفيذها لاحقاً
-        } catch (error) {
-          console.error('خطأ في استيراد البيانات:', error);
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
 
   return (
-    <div 
-      className="h-screen bg-gray-50 dark:bg-gray-900 transition-colors flex flex-col"
-      onContextMenu={handleContextMenu}
-      onClick={() => setContextMenu(null)}
-    >
+    <div className="h-screen bg-gray-50 dark:bg-gray-900 transition-colors flex flex-col">
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -117,30 +90,12 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                   <SunIcon className="h-5 w-5" />
                 }
               </button>
-
-              <button
-                onClick={exportData}
-                className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-                title="تصدير البيانات"
-              >
-                <ArrowDownTrayIcon className="h-5 w-5" />
-              </button>
-
-              <label className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer" title="استيراد البيانات">
-                <ArrowUpTrayIcon className="h-5 w-5" />
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleImport}
-                  className="hidden"
-                />
-              </label>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         {/* Sidebar */}
         <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 right-0 z-50 ${state.sidebarCollapsed ? 'lg:w-16' : 'lg:w-64'} w-64 bg-white dark:bg-gray-800 shadow-xl lg:shadow-none border-l border-gray-200 dark:border-gray-700 transform transition-all duration-300 ease-in-out flex flex-col`}>
           {/* شريط التمرير الرفيع */}
@@ -221,42 +176,13 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
         )}
 
         {/* Main content */}
-        <main className={`flex-1 transition-all duration-300 ${state.sidebarCollapsed ? 'lg:mr-16' : 'lg:mr-64'} overflow-hidden w-full`}>
+        <main className={`flex-1 transition-all duration-300 overflow-hidden w-full ${state.sidebarCollapsed ? 'lg:mr-0' : 'lg:mr-64'} ${sidebarOpen ? 'mr-64' : ''}`}>
           <div className="w-full h-full">
             {children}
           </div>
         </main>
       </div>
 
-      {/* Context Menu */}
-      {contextMenu && (
-        <div
-          className="fixed bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-        >
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              exportData();
-              setContextMenu(null);
-            }}
-            className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-right"
-          >
-            <ArrowDownTrayIcon className="h-4 w-4 ml-2" />
-            تصدير البيانات
-          </button>
-          <label className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-right cursor-pointer">
-            <ArrowUpTrayIcon className="h-4 w-4 ml-2" />
-            استيراد البيانات
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              className="hidden"
-            />
-          </label>
-        </div>
-      )}
     </div>
   );
 }

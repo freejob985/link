@@ -31,6 +31,7 @@ export interface Group {
   name: string;
   linkIds: string[];
   createdAt: string;
+  hidden?: boolean; // إمكانية إخفاء المجموعة
 }
 
 export interface ClickRecord {

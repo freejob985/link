@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Group } from '../types';
 import { 
@@ -7,16 +7,28 @@ import {
   TrashIcon,
   ArrowTopRightOnSquareIcon,
   TagIcon,
-  LinkIcon
+  LinkIcon,
+  FolderPlusIcon,
+  ChartBarIcon,
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
+  EyeIcon,
+  EyeSlashIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 
-export function GroupsPage() {
-  const { state, addGroup, updateGroup, deleteGroup, recordClick } = useApp();
+interface GroupsPageProps {
+  onNavigate?: (page: string) => void;
+}
+
+export function GroupsPage({ onNavigate }: GroupsPageProps = {}) {
+  const { state, addGroup, updateGroup, deleteGroup, recordClick, exportData, importData, addCategory, addSubcategory, toggleGroupVisibility, toggleGroupsSection } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showContextMenu, setShowContextMenu] = useState(false);
+  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   
   const [formData, setFormData] = useState({
     name: '',
@@ -177,29 +189,205 @@ export function GroupsPage() {
     );
   });
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenuPosition({ x: e.clientX, y: e.clientY });
+    setShowContextMenu(true);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target?.result as string);
+          importData(data);
+          setShowContextMenu(false);
+        } catch (error) {
+          console.error('خطأ في استيراد البيانات:', error);
+          toast.error('خطأ في استيراد البيانات');
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleAddCategory = async () => {
+    const { value: names } = await Swal.fire({
+      title: 'إضافة أقسام جديدة',
+      html: `
+        <div class="text-right space-y-4">
+          <div class="bg-blue-50 rounded-lg p-3">
+            <p class="text-sm text-blue-800">يمكنك إضافة عدة أقسام في كل سطر</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">أسماء الأقسام (سطر واحد لكل قسم)</label>
+            <textarea id="categoryNames" 
+                      placeholder="قسم التصميم&#10;قسم البرمجة&#10;قسم التسويق"
+                      class="w-full h-32 p-3 border border-gray-300 rounded-lg text-right resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows="4"></textarea>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'إضافة جميع الأقسام',
+      cancelButtonText: 'إلغاء',
+      preConfirm: () => {
+        const textarea = document.getElementById('categoryNames') as HTMLTextAreaElement;
+        const names = textarea.value.split('\n').filter(name => name.trim());
+        if (names.length === 0) {
+          Swal.showValidationMessage('يرجى إدخال اسم قسم واحد على الأقل');
+          return false;
+        }
+        return names;
+      }
+    });
+
+    if (names && names.length > 0) {
+      names.forEach((name: string) => {
+        if (name.trim()) {
+          addCategory(name.trim());
+        }
+      });
+      toast.success(`تم إضافة ${names.length} قسم بنجاح`);
+      setShowContextMenu(false);
+    }
+  };
+
+  const handleAddSubcategory = async () => {
+    if (state.categories.length === 0) {
+      toast.error('يرجى إضافة قسم رئيسي أولاً');
+      return;
+    }
+
+    const { value: categoryId } = await Swal.fire({
+      title: 'اختر القسم الرئيسي',
+      input: 'select',
+      inputOptions: state.categories.reduce((acc, cat) => {
+        acc[cat.id] = cat.name;
+        return acc;
+      }, {} as Record<string, string>),
+      showCancelButton: true,
+      confirmButtonText: 'متابعة',
+      cancelButtonText: 'إلغاء'
+    });
+
+    if (categoryId) {
+      const { value: names } = await Swal.fire({
+        title: 'إضافة أقسام فرعية جديدة',
+        html: `
+          <div class="text-right space-y-4">
+            <div class="bg-green-50 rounded-lg p-3">
+              <p class="text-sm text-green-800">يمكنك إضافة عدة أقسام فرعية في كل سطر</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">أسماء الأقسام الفرعية (سطر واحد لكل قسم)</label>
+              <textarea id="subcategoryNames" 
+                        placeholder="UI/UX&#10;جرافيك&#10;تصميم ويب"
+                        class="w-full h-32 p-3 border border-gray-300 rounded-lg text-right resize-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        rows="4"></textarea>
+            </div>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'إضافة جميع الأقسام الفرعية',
+        cancelButtonText: 'إلغاء',
+        preConfirm: () => {
+          const textarea = document.getElementById('subcategoryNames') as HTMLTextAreaElement;
+          const names = textarea.value.split('\n').filter(name => name.trim());
+          if (names.length === 0) {
+            Swal.showValidationMessage('يرجى إدخال اسم قسم فرعي واحد على الأقل');
+            return false;
+          }
+          return names;
+        }
+      });
+
+      if (names && names.length > 0) {
+        names.forEach((name: string) => {
+          if (name.trim()) {
+            addSubcategory(name.trim(), categoryId);
+          }
+        });
+        toast.success(`تم إضافة ${names.length} قسم فرعي بنجاح`);
+        setShowContextMenu(false);
+      }
+    }
+  };
+
+  // إغلاق قائمة السياق عند النقر خارجها
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showContextMenu) {
+        setShowContextMenu(false);
+      }
+    };
+
+    if (showContextMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showContextMenu]);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" onContextMenu={handleContextMenu}>
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-cairo">
           إدارة المجموعات
         </h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-xl flex items-center hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-        >
-          <TagIcon className="h-5 w-5 ml-2" />
-          إضافة مجموعة جديدة
-        </button>
+        <div className="flex items-center space-x-3 space-x-reverse">
+          <button
+            onClick={toggleGroupsSection}
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            title={state.groupsSectionHidden ? 'إظهار قسم المجموعات' : 'إخفاء قسم المجموعات'}
+          >
+            {state.groupsSectionHidden ? (
+              <EyeSlashIcon className="h-5 w-5" />
+            ) : (
+              <EyeIcon className="h-5 w-5" />
+            )}
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-xl flex items-center hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          >
+            <TagIcon className="h-5 w-5 ml-2" />
+            إضافة مجموعة جديدة
+          </button>
+        </div>
       </div>
 
+      {/* زر إظهار قسم المجموعات عندما يكون مخفياً */}
+      {state.groups.length > 0 && state.groupsSectionHidden && (
+        <div className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <TagIcon className="h-5 w-5 text-purple-600 ml-2" />
+              <span className="text-sm text-gray-500 dark:text-gray-400 font-tajawal">
+                قسم المجموعات مخفي ({state.groups.length} مجموعة)
+              </span>
+            </div>
+            <button
+              onClick={toggleGroupsSection}
+              className="flex items-center px-3 py-2 text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20"
+            >
+              <EyeIcon className="h-4 w-4 ml-1" />
+              إظهار المجموعات
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* قائمة المجموعات */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {!state.groupsSectionHidden && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {state.groups.map(group => {
           const groupLinks = getGroupLinks(group.linkIds);
           
           return (
-            <div key={group.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+            <div key={group.id} className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 ${group.hidden ? 'opacity-50' : ''}`}>
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center">
                   <TagIcon className="h-6 w-6 text-blue-600 ml-3" />
@@ -214,6 +402,18 @@ export function GroupsPage() {
                 </div>
 
                 <div className="flex space-x-2 space-x-reverse">
+                  <button
+                    onClick={() => toggleGroupVisibility(group.id)}
+                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md transition-colors"
+                    title={group.hidden ? 'إظهار المجموعة' : 'إخفاء المجموعة'}
+                  >
+                    {group.hidden ? (
+                      <EyeSlashIcon className="h-4 w-4" />
+                    ) : (
+                      <EyeIcon className="h-4 w-4" />
+                    )}
+                  </button>
+                  
                   <button
                     onClick={() => handleOpenGroup(group)}
                     className="p-2 text-green-600 hover:bg-green-100 dark:hover:bg-green-900 rounded-md transition-colors"
@@ -269,9 +469,10 @@ export function GroupsPage() {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
 
-      {state.groups.length === 0 && (
+      {state.groups.length === 0 && !state.groupsSectionHidden && (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400 font-tajawal">
           لا توجد مجموعات بعد. ابدأ بإضافة مجموعة جديدة!
         </div>
@@ -409,6 +610,157 @@ export function GroupsPage() {
               </form>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* قائمة السياق */}
+      {showContextMenu && (
+        <div
+          className="fixed bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-3 z-50 min-w-72"
+          style={{ left: contextMenuPosition.x, top: contextMenuPosition.y }}
+        >
+          {/* قسم التنقل */}
+          <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">التنقل السريع</h3>
+          </div>
+          
+          <button
+            onClick={() => {
+              onNavigate?.('links');
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <LinkIcon className="h-4 w-4 ml-3 text-blue-600" />
+            <div>
+              <div className="font-medium">الروابط</div>
+              <div className="text-xs text-gray-500">عرض وإدارة جميع الروابط</div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => {
+              onNavigate?.('categories');
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <FolderPlusIcon className="h-4 w-4 ml-3 text-purple-600" />
+            <div>
+              <div className="font-medium">الأقسام</div>
+              <div className="text-xs text-gray-500">إدارة الأقسام الرئيسية والفرعية</div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => {
+              onNavigate?.('groups');
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <TagIcon className="h-4 w-4 ml-3 text-indigo-600" />
+            <div>
+              <div className="font-medium">المجموعات</div>
+              <div className="text-xs text-gray-500">إدارة مجموعات الروابط</div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => {
+              onNavigate?.('stats');
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <ChartBarIcon className="h-4 w-4 ml-3 text-green-600" />
+            <div>
+              <div className="font-medium">الإحصائيات</div>
+              <div className="text-xs text-gray-500">عرض الإحصائيات والتحليلات</div>
+            </div>
+          </button>
+
+          <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+          
+          {/* قسم الإضافة السريعة */}
+          <div className="px-4 py-2">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">إضافة سريع</h3>
+          </div>
+          
+          <button
+            onClick={() => {
+              setShowForm(true);
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <TagIcon className="h-4 w-4 ml-3 text-indigo-600" />
+            <div>
+              <div className="font-medium">إضافة مجموعة</div>
+              <div className="text-xs text-gray-500">إنشاء مجموعة روابط</div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => {
+              handleAddCategory();
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <FolderPlusIcon className="h-4 w-4 ml-3 text-purple-600" />
+            <div>
+              <div className="font-medium">إضافة قسم رئيسي</div>
+              <div className="text-xs text-gray-500">إضافة أقسام جديدة</div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => {
+              handleAddSubcategory();
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <FolderPlusIcon className="h-4 w-4 ml-3 text-orange-600" />
+            <div>
+              <div className="font-medium">إضافة قسم فرعي</div>
+              <div className="text-xs text-gray-500">إضافة أقسام فرعية</div>
+            </div>
+          </button>
+
+          <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+          
+          {/* قسم التصدير والاستيراد */}
+          <div className="px-4 py-2">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">البيانات</h3>
+          </div>
+          
+          <button
+            onClick={() => {
+              exportData();
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <ArrowDownTrayIcon className="h-4 w-4 ml-3 text-green-600" />
+            <div>
+              <div className="font-medium">تصدير البيانات</div>
+              <div className="text-xs text-gray-500">حفظ نسخة احتياطية من البيانات</div>
+            </div>
+          </button>
+          
+          <label className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900 w-full text-right transition-colors rounded-lg mx-2 my-1 cursor-pointer">
+            <ArrowUpTrayIcon className="h-4 w-4 ml-3 text-blue-600" />
+            <div>
+              <div className="font-medium">استيراد البيانات</div>
+              <div className="text-xs text-gray-500">استعادة البيانات من ملف</div>
+            </div>
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+            />
+          </label>
         </div>
       )}
     </div>

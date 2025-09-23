@@ -16,15 +16,23 @@ import {
   ChevronRightIcon,
   FolderPlusIcon,
   TagIcon,
-  LinkIcon
+  LinkIcon,
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
+  EyeIcon,
+  EyeSlashIcon
 } from '@heroicons/react/24/outline';
 import { TagInput } from '../components/TagInput';
 import { aiService } from '../services/ai';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 
-export function LinksPage() {
-  const { state, addLink, updateLink, deleteLink, recordClick, addCategory, addSubcategory, addGroup } = useApp();
+interface LinksPageProps {
+  onNavigate?: (page: string) => void;
+}
+
+export function LinksPage({ onNavigate }: LinksPageProps = {}) {
+  const { state, addLink, updateLink, deleteLink, recordClick, addCategory, addSubcategory, addGroup, exportData, importData, toggleGroupVisibility, toggleGroupsSection } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [editingLink, setEditingLink] = useState<Link | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -63,6 +71,20 @@ export function LinksPage() {
     const interval = setInterval(hideBoltBadge, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // إغلاق قائمة السياق عند النقر خارجها
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showContextMenu) {
+        setShowContextMenu(false);
+      }
+    };
+
+    if (showContextMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showContextMenu]);
 
   // تصفية الروابط مع التمييز
   const filteredLinks = useMemo(() => {
@@ -340,6 +362,24 @@ export function LinksPage() {
     e.preventDefault();
     setContextMenuPosition({ x: e.clientX, y: e.clientY });
     setShowContextMenu(true);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target?.result as string);
+          importData(data);
+          setShowContextMenu(false);
+        } catch (error) {
+          console.error('خطأ في استيراد البيانات:', error);
+          toast.error('خطأ في استيراد البيانات');
+        }
+      };
+      reader.readAsText(file);
+    }
   };
 
   const handleAddCategory = async () => {
@@ -686,10 +726,49 @@ export function LinksPage() {
         </div>
       </div>
 
-      {/* قائمة المجموعات */}
-      {state.groups.length > 0 && (
+      {/* زر إظهار قسم المجموعات عندما يكون مخفياً */}
+      {state.groups.length > 0 && state.groupsSectionHidden && (
         <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 font-cairo">المجموعات</h2>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <TagIcon className="h-5 w-5 text-purple-600 ml-2" />
+              <span className="text-sm text-gray-500 dark:text-gray-400 font-tajawal">
+                قسم المجموعات مخفي ({state.groups.length} مجموعة)
+              </span>
+            </div>
+            <button
+              onClick={toggleGroupsSection}
+              className="flex items-center px-3 py-2 text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20"
+            >
+              <EyeIcon className="h-4 w-4 ml-1" />
+              إظهار المجموعات
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* قائمة المجموعات */}
+      {state.groups.length > 0 && !state.groupsSectionHidden && (
+        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white font-cairo">المجموعات</h2>
+            <div className="flex items-center space-x-2 space-x-reverse">
+              <span className="text-sm text-gray-500 dark:text-gray-400 font-tajawal">
+                {state.groups.filter(g => !g.hidden).length} من {state.groups.length} مرئية
+              </span>
+              <button
+                onClick={toggleGroupsSection}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                title={state.groupsSectionHidden ? 'إظهار قسم المجموعات' : 'إخفاء قسم المجموعات'}
+              >
+                {state.groupsSectionHidden ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {state.groups.map(group => {
               const groupLinks = group.linkIds
@@ -697,18 +776,34 @@ export function LinksPage() {
                 .filter((link: Link | undefined): link is Link => link !== undefined);
               
               return (
-                <div key={group.id} className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-700 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleOpenGroupLinks(group)}>
-                  <div className="flex items-center mb-2">
-                    <TagIcon className="h-5 w-5 text-purple-600 ml-2" />
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white font-tajawal">
-                      {group.name}
-                    </h3>
+                <div key={group.id} className={`bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-700 hover:shadow-md transition-shadow cursor-pointer ${group.hidden ? 'opacity-50' : ''}`} onClick={() => handleOpenGroupLinks(group)}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                      <TagIcon className="h-5 w-5 text-purple-600 ml-2" />
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white font-tajawal">
+                        {group.name}
+                      </h3>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGroupVisibility(group.id);
+                      }}
+                      className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      title={group.hidden ? 'إظهار المجموعة' : 'إخفاء المجموعة'}
+                    >
+                      {group.hidden ? (
+                        <EyeSlashIcon className="h-4 w-4" />
+                      ) : (
+                        <EyeIcon className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
                   <p className="text-xs text-gray-600 dark:text-gray-400 font-tajawal">
                     {groupLinks.length} رابط
                   </p>
                   <div className="mt-2 text-xs text-purple-600 dark:text-purple-400 font-tajawal">
-                    اضغط لفتح جميع الروابط
+                    {group.hidden ? 'مخفية' : 'اضغط لفتح جميع الروابط'}
                   </div>
                 </div>
               );
@@ -719,30 +814,44 @@ export function LinksPage() {
 
       {/* قائمة الروابط */}
       <div className="flex-1 overflow-y-auto p-4 w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full">
+        {filteredLinks.length > 0 && (
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-blue-700 dark:text-blue-300 font-tajawal text-center">
+              💡 اضغط على أي كارد لفتح الرابط في صفحة جديدة
+            </p>
+          </div>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 w-full">
           {paginatedLinks.map(link => (
-            <div key={link.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+            <div 
+              key={link.id} 
+              className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 transform hover:border-blue-300 dark:hover:border-blue-600 group"
+              onClick={() => {
+                recordClick(link.id);
+                window.open(link.url, '_blank', 'noopener,noreferrer');
+              }}
+            >
               <div className="flex justify-between items-start mb-3">
-                <div className="flex items-center">
+                <div className="flex items-center flex-1 min-w-0">
                   <img 
                     src={link.icon || 'https://cdn-icons-png.flaticon.com/128/6928/6928929.png'} 
                     alt={link.name}
-                    className="w-8 h-8 rounded-lg ml-3 object-cover"
+                    className="w-10 h-10 rounded-lg ml-3 object-cover flex-shrink-0"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = 'https://cdn-icons-png.flaticon.com/128/6928/6928929.png';
                     }}
                   />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white font-tajawal">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white font-tajawal line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex-1 min-w-0">
                     {link.isHighlighted ? highlightText(link.name, searchTerm) : link.name}
                   </h3>
                 </div>
-                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 font-tajawal">
+                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 font-tajawal flex-shrink-0">
                   <ChartBarIcon className="h-4 w-4 ml-1" />
                   {link.clicks}
                 </div>
               </div>
 
-              <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 font-tajawal">
+              <p className="text-gray-600 dark:text-gray-300 text-xs mb-3 font-tajawal line-clamp-2">
                 {link.isHighlighted ? highlightText(link.description || 'لا يوجد وصف', searchTerm) : (link.description || 'لا يوجد وصف')}
               </p>
 
@@ -771,37 +880,49 @@ export function LinksPage() {
               )}
 
               <div className="flex justify-between items-center pt-3 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex space-x-2 space-x-reverse">
+                <div className="flex space-x-1 space-x-reverse">
                   <button
-                    onClick={() => handleOpenLink(link)}
-                    className="p-2 text-green-600 hover:bg-green-100 dark:hover:bg-green-900 rounded-md transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenLink(link);
+                    }}
+                    className="p-1.5 text-green-600 hover:bg-green-100 dark:hover:bg-green-900 rounded-md transition-colors"
                     title="فتح الرابط"
                   >
-                    <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                    <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
                   </button>
                   <button
-                    onClick={() => handleCopyLink(link.url)}
-                    className="p-2 text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopyLink(link.url);
+                    }}
+                    className="p-1.5 text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
                     title="نسخ الرابط"
                   >
-                    <ClipboardIcon className="h-4 w-4" />
+                    <ClipboardIcon className="h-3.5 w-3.5" />
                   </button>
                 </div>
 
-                <div className="flex space-x-2 space-x-reverse">
+                <div className="flex space-x-1 space-x-reverse">
                   <button
-                    onClick={() => handleEdit(link)}
-                    className="p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-md transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(link);
+                    }}
+                    className="p-1.5 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-md transition-colors"
                     title="تعديل"
                   >
-                    <PencilIcon className="h-4 w-4" />
+                    <PencilIcon className="h-3.5 w-3.5" />
                   </button>
                   <button
-                    onClick={() => handleDelete(link)}
-                    className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900 rounded-md transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(link);
+                    }}
+                    className="p-1.5 text-red-600 hover:bg-red-100 dark:hover:bg-red-900 rounded-md transition-colors"
                     title="حذف"
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <TrashIcon className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
@@ -873,11 +994,75 @@ export function LinksPage() {
       {/* قائمة السياق */}
       {showContextMenu && (
         <div
-          className="fixed bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-3 z-50 min-w-64"
+          className="fixed bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-3 z-50 min-w-72"
           style={{ left: contextMenuPosition.x, top: contextMenuPosition.y }}
         >
+          {/* قسم التنقل */}
           <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">إضافة سريع</h3>
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">التنقل السريع</h3>
+          </div>
+          
+          <button
+            onClick={() => {
+              onNavigate?.('links');
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <LinkIcon className="h-4 w-4 ml-3 text-blue-600" />
+            <div>
+              <div className="font-medium">الروابط</div>
+              <div className="text-xs text-gray-500">عرض وإدارة جميع الروابط</div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => {
+              onNavigate?.('categories');
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <FolderPlusIcon className="h-4 w-4 ml-3 text-purple-600" />
+            <div>
+              <div className="font-medium">الأقسام</div>
+              <div className="text-xs text-gray-500">إدارة الأقسام الرئيسية والفرعية</div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => {
+              onNavigate?.('groups');
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <TagIcon className="h-4 w-4 ml-3 text-indigo-600" />
+            <div>
+              <div className="font-medium">المجموعات</div>
+              <div className="text-xs text-gray-500">إدارة مجموعات الروابط</div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => {
+              onNavigate?.('stats');
+              setShowContextMenu(false);
+            }}
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <ChartBarIcon className="h-4 w-4 ml-3 text-green-600" />
+            <div>
+              <div className="font-medium">الإحصائيات</div>
+              <div className="text-xs text-gray-500">عرض الإحصائيات والتحليلات</div>
+            </div>
+          </button>
+
+          <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+          
+          {/* قسم الإضافة السريعة */}
+          <div className="px-4 py-2">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">إضافة سريع</h3>
           </div>
           
           <button
@@ -907,8 +1092,6 @@ export function LinksPage() {
               <div className="text-xs text-gray-500">إضافة عدة روابط مرة واحدة</div>
             </div>
           </button>
-          
-          <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
           
           <button
             onClick={() => {
@@ -954,65 +1137,38 @@ export function LinksPage() {
 
           <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
           
+          {/* قسم التصدير والاستيراد */}
           <div className="px-4 py-2">
-            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">التنقل</h3>
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">البيانات</h3>
           </div>
           
           <button
             onClick={() => {
-              window.location.href = '/';
+              exportData();
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 w-full text-right transition-colors rounded-lg mx-2 my-1"
+            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
           >
-            <LinkIcon className="h-4 w-4 ml-3 text-gray-600" />
+            <ArrowDownTrayIcon className="h-4 w-4 ml-3 text-green-600" />
             <div>
-              <div className="font-medium">الروابط</div>
-              <div className="text-xs text-gray-500">عرض جميع الروابط</div>
+              <div className="font-medium">تصدير البيانات</div>
+              <div className="text-xs text-gray-500">حفظ نسخة احتياطية من البيانات</div>
             </div>
           </button>
           
-          <button
-            onClick={() => {
-              window.location.href = '/categories';
-              setShowContextMenu(false);
-            }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 w-full text-right transition-colors rounded-lg mx-2 my-1"
-          >
-            <FolderPlusIcon className="h-4 w-4 ml-3 text-gray-600" />
+          <label className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900 w-full text-right transition-colors rounded-lg mx-2 my-1 cursor-pointer">
+            <ArrowUpTrayIcon className="h-4 w-4 ml-3 text-blue-600" />
             <div>
-              <div className="font-medium">الأقسام</div>
-              <div className="text-xs text-gray-500">إدارة الأقسام</div>
+              <div className="font-medium">استيراد البيانات</div>
+              <div className="text-xs text-gray-500">استعادة البيانات من ملف</div>
             </div>
-          </button>
-          
-          <button
-            onClick={() => {
-              window.location.href = '/groups';
-              setShowContextMenu(false);
-            }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 w-full text-right transition-colors rounded-lg mx-2 my-1"
-          >
-            <TagIcon className="h-4 w-4 ml-3 text-gray-600" />
-            <div>
-              <div className="font-medium">المجموعات</div>
-              <div className="text-xs text-gray-500">إدارة المجموعات</div>
-            </div>
-          </button>
-          
-          <button
-            onClick={() => {
-              window.location.href = '/stats';
-              setShowContextMenu(false);
-            }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 w-full text-right transition-colors rounded-lg mx-2 my-1"
-          >
-            <ChartBarIcon className="h-4 w-4 ml-3 text-gray-600" />
-            <div>
-              <div className="font-medium">الإحصائيات</div>
-              <div className="text-xs text-gray-500">عرض الإحصائيات</div>
-            </div>
-          </button>
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+            />
+          </label>
         </div>
       )}
 

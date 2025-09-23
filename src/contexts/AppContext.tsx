@@ -7,12 +7,14 @@ interface AppState extends AppData {
   theme: Theme;
   showSplash: boolean;
   sidebarCollapsed: boolean;
+  groupsSectionHidden: boolean; // إخفاء قسم المجموعات بالكامل
 }
 
 type AppAction = 
   | { type: 'SET_THEME'; payload: Theme }
   | { type: 'SET_SPLASH'; payload: boolean }
   | { type: 'TOGGLE_SIDEBAR' }
+  | { type: 'TOGGLE_GROUPS_SECTION' }
   | { type: 'SET_DATA'; payload: AppData }
   | { type: 'ADD_LINK'; payload: Link }
   | { type: 'UPDATE_LINK'; payload: Link }
@@ -26,12 +28,14 @@ type AppAction =
   | { type: 'ADD_GROUP'; payload: Group }
   | { type: 'UPDATE_GROUP'; payload: Group }
   | { type: 'DELETE_GROUP'; payload: string }
+  | { type: 'TOGGLE_GROUP_VISIBILITY'; payload: string }
   | { type: 'ADD_CLICK'; payload: ClickRecord };
 
 const initialState: AppState = {
   theme: 'light',
   showSplash: true,
   sidebarCollapsed: false,
+  groupsSectionHidden: false,
   links: [],
   categories: [],
   subcategories: [],
@@ -47,6 +51,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, showSplash: action.payload };
     case 'TOGGLE_SIDEBAR':
       return { ...state, sidebarCollapsed: !state.sidebarCollapsed };
+    case 'TOGGLE_GROUPS_SECTION':
+      return { ...state, groupsSectionHidden: !state.groupsSectionHidden };
     case 'SET_DATA':
       return { ...state, ...action.payload };
     case 'ADD_LINK':
@@ -130,6 +136,15 @@ function appReducer(state: AppState, action: AppAction): AppState {
             : link
         )
       };
+    case 'TOGGLE_GROUP_VISIBILITY':
+      return {
+        ...state,
+        groups: state.groups.map(group =>
+          group.id === action.payload
+            ? { ...group, hidden: !group.hidden }
+            : group
+        )
+      };
     default:
       return state;
   }
@@ -150,9 +165,11 @@ interface AppContextValue {
   addGroup: (name: string, linkIds: string[]) => void;
   updateGroup: (id: string, name: string, linkIds: string[]) => void;
   deleteGroup: (id: string) => void;
+  toggleGroupVisibility: (id: string) => void;
   recordClick: (linkId: string) => void;
   toggleTheme: () => void;
   toggleSidebar: () => void;
+  toggleGroupsSection: () => void;
   hideSplash: () => void;
   exportData: () => void;
   importData: (data: AppData) => void;
@@ -354,6 +371,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toast.success('تم استيراد البيانات بنجاح');
   };
 
+  const toggleGroupVisibility = (id: string) => {
+    dispatch({ type: 'TOGGLE_GROUP_VISIBILITY', payload: id });
+  };
+
+  const toggleGroupsSection = () => {
+    dispatch({ type: 'TOGGLE_GROUPS_SECTION' });
+  };
+
   const value: AppContextValue = {
     state,
     dispatch,
@@ -369,9 +394,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addGroup,
     updateGroup,
     deleteGroup,
+    toggleGroupVisibility,
     recordClick,
     toggleTheme,
     toggleSidebar,
+    toggleGroupsSection,
     hideSplash,
     exportData,
     importData
