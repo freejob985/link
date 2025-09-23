@@ -1,6 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { statsService } from '../services/stats';
+import Swal from 'sweetalert2';
+import { toast } from 'react-hot-toast';
 import { 
   ChartBarIcon,
   ArrowTrendingUpIcon,
@@ -186,6 +188,87 @@ export function StatsPage({ onNavigate }: StatsPageProps = {}) {
     }
   };
 
+  const handleClearAllData = async () => {
+    const result = await Swal.fire({
+      title: '⚠️ تحذير!',
+      html: `
+        <div class="text-right space-y-4">
+          <div class="bg-red-50 rounded-lg p-4 border border-red-200">
+            <div class="flex items-center mb-2">
+              <svg class="h-5 w-5 text-red-600 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <h3 class="text-lg font-semibold text-red-800">هذا الإجراء لا يمكن التراجع عنه!</h3>
+            </div>
+            <p class="text-sm text-red-700">سيتم حذف جميع البيانات التالية:</p>
+            <ul class="text-sm text-red-700 mt-2 space-y-1">
+              <li>• جميع الروابط (${state.links.length} رابط)</li>
+              <li>• جميع الأقسام الرئيسية (${state.categories.length} قسم)</li>
+              <li>• جميع الأقسام الفرعية (${state.subcategories.length} قسم فرعي)</li>
+              <li>• جميع المجموعات (${state.groups.length} مجموعة)</li>
+              <li>• جميع الإحصائيات والنقرات</li>
+            </ul>
+          </div>
+          <div class="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+            <p class="text-sm text-yellow-800">
+              <strong>نصيحة:</strong> تأكد من تصدير البيانات قبل المتابعة
+            </p>
+          </div>
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'نعم، احذف جميع البيانات',
+      cancelButtonText: 'إلغاء',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      allowEscapeKey: true,
+      allowOutsideClick: true,
+      input: 'text',
+      inputLabel: 'اكتب "حذف" للتأكيد',
+      inputPlaceholder: 'حذف',
+      inputValidator: (value: string) => {
+        if (value !== 'حذف') {
+          return 'يجب كتابة "حذف" للتأكيد';
+        }
+        return null;
+      }
+    });
+
+    if (result.isConfirmed) {
+      try {
+        // مسح جميع البيانات من localStorage
+        localStorage.removeItem('appData');
+        localStorage.removeItem('linksSectionHidden');
+        localStorage.removeItem('groupsSectionHidden');
+        localStorage.removeItem('theme');
+        localStorage.removeItem('sidebarCollapsed');
+        
+        // إعادة تحميل الصفحة
+        window.location.reload();
+        
+        await Swal.fire({
+          title: 'تم بنجاح!',
+          text: 'تم مسح جميع البيانات بنجاح',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false,
+          allowEscapeKey: true,
+          allowOutsideClick: true,
+        });
+      } catch (error) {
+        console.error('خطأ في مسح البيانات:', error);
+        await Swal.fire({
+          title: 'خطأ!',
+          text: 'حدث خطأ أثناء مسح البيانات',
+          icon: 'error',
+          allowEscapeKey: true,
+          allowOutsideClick: true,
+        });
+      }
+    }
+  };
+
   // إغلاق قائمة السياق عند النقر خارجها
   useEffect(() => {
     const handleClickOutside = () => {
@@ -201,12 +284,22 @@ export function StatsPage({ onNavigate }: StatsPageProps = {}) {
   }, [showContextMenu]);
 
   return (
-    <div className="space-y-6" onContextMenu={handleContextMenu}>
+    <div className="h-full flex flex-col" onContextMenu={handleContextMenu}>
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-cairo">
           الإحصائيات والتحليلات
         </h1>
+        <button
+          onClick={handleClearAllData}
+          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-tajawal flex items-center"
+        >
+          <svg className="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          مسح جميع البيانات
+        </button>
       </div>
 
       {/* إحصائيات عامة */}
@@ -290,7 +383,7 @@ export function StatsPage({ onNavigate }: StatsPageProps = {}) {
         </div>
         <div className="p-6">
           <div className="h-64 flex items-end space-x-1 space-x-reverse">
-            {stats.clicksByDay.map((day, index) => {
+            {stats.clicksByDay.map((day) => {
               const maxClicks = Math.max(...stats.clicksByDay.map(d => d.clicks));
               const height = maxClicks > 0 ? (day.clicks / maxClicks) * 100 : 0;
               
@@ -525,8 +618,31 @@ export function StatsPage({ onNavigate }: StatsPageProps = {}) {
               className="hidden"
             />
           </label>
+
+          <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+          
+          {/* قسم الخطر */}
+          <div className="px-4 py-2">
+            <h3 className="text-xs font-semibold text-red-500 dark:text-red-400 uppercase tracking-wide mb-2">خطر</h3>
+          </div>
+          
+          <button
+            onClick={() => {
+              handleClearAllData();
+            }}
+            className="flex items-center px-4 py-3 text-sm text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+          >
+            <svg className="h-4 w-4 ml-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <div>
+              <div className="font-medium">مسح جميع البيانات</div>
+              <div className="text-xs text-red-500">حذف جميع الروابط والأقسام والمجموعات</div>
+            </div>
+          </button>
         </div>
       )}
+      </div>
     </div>
   );
 }

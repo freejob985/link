@@ -2,12 +2,14 @@ import { Link, ClickRecord, Stats } from '../types';
 
 class StatsService {
   calculateStats(links: Link[], clickRecords: ClickRecord[]): Stats {
+    // حساب إجمالي النقرات من الروابط
+    const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
+    
+    // حساب النقرات اليومية من clickRecords
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    const totalClicks = clickRecords.length;
     
     const clicksToday = clickRecords.filter(click => 
       new Date(click.clickedAt) >= today

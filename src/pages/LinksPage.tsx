@@ -525,15 +525,27 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
     }
 
     if (editingLink) {
+      // تحديث الرابط الموجود
       updateLink({
         ...editingLink,
-        ...formData,
-        subcategoryId: formData.subcategoryId || undefined
+        name: formData.name,
+        url: formData.url,
+        description: formData.description,
+        categoryId: formData.categoryId,
+        subcategoryId: formData.subcategoryId || undefined,
+        tags: formData.tags,
+        icon: formData.icon
       });
     } else {
+      // إضافة رابط جديد
       addLink({
-        ...formData,
-        subcategoryId: formData.subcategoryId || undefined
+        name: formData.name,
+        url: formData.url,
+        description: formData.description,
+        categoryId: formData.categoryId,
+        subcategoryId: formData.subcategoryId || undefined,
+        tags: formData.tags,
+        icon: formData.icon
       });
     }
 
@@ -879,16 +891,168 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
         setShowMultiLinkForm(true);
       }
       
-      // Ctrl/Cmd + Shift + C لإضافة قسم رئيسي
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'C') {
-        event.preventDefault();
-        handleAddCategory();
-      }
+        // Ctrl/Cmd + Shift + C لإضافة قسم رئيسي
+        if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'C') {
+          event.preventDefault();
+          handleAddCategory();
+        }
+
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleAddCategory]);
+
+  const handleAddSampleData = useCallback(async () => {
+    try {
+      const result = await Swal.fire({
+        title: 'إضافة بيانات تجريبية',
+        text: 'هل تريد إضافة الأقسام والمجموعات التجريبية؟',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، أضف البيانات',
+        cancelButtonText: 'إلغاء',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#ef4444',
+        allowEscapeKey: true,
+        allowOutsideClick: true,
+      });
+
+      if (result.isConfirmed) {
+        // إضافة الأقسام الرئيسية
+        const sampleCategories = [
+          'رياضة',
+          'ذكاء اصطناعي', 
+          'برمجة',
+          'فديو',
+          'سوشيل ميديا',
+          'بحث',
+          'تصميم',
+          'ايكونات'
+        ];
+
+        for (const categoryName of sampleCategories) {
+          if (!state.categories.some(cat => cat.name === categoryName)) {
+            addCategory(categoryName);
+          }
+        }
+
+        // إضافة المجموعات
+        const sampleGroups = [
+          { name: 'رياضة', color: '#ef4444' },
+          { name: 'ذكاء اصطناعي', color: '#8b5cf6' },
+          { name: 'برمجة', color: '#06b6d4' },
+          { name: 'فديو', color: '#f59e0b' },
+          { name: 'سوشيل ميديا', color: '#10b981' },
+          { name: 'بحث', color: '#3b82f6' },
+          { name: 'تصميم', color: '#ec4899' },
+          { name: 'ايكونات', color: '#84cc16' }
+        ];
+
+        for (const group of sampleGroups) {
+          if (!state.groups.some(g => g.name === group.name)) {
+            addGroup(group.name, []);
+          }
+        }
+
+        // انتظار قليل ثم إضافة الروابط
+        setTimeout(() => {
+          const sampleLinks = [
+            // روابط رياضة
+            { title: 'ESPN', url: 'https://www.espn.com', category: 'رياضة', tags: ['رياضة', 'أخبار'] },
+            { title: 'FIFA', url: 'https://www.fifa.com', category: 'رياضة', tags: ['رياضة', 'كرة قدم'] },
+            { title: 'NBA', url: 'https://www.nba.com', category: 'رياضة', tags: ['رياضة', 'كرة سلة'] },
+            
+            // روابط ذكاء اصطناعي
+            { title: 'OpenAI', url: 'https://openai.com', category: 'ذكاء اصطناعي', tags: ['ذكاء اصطناعي', 'AI'] },
+            { title: 'TensorFlow', url: 'https://tensorflow.org', category: 'ذكاء اصطناعي', tags: ['ذكاء اصطناعي', 'تعلم آلة'] },
+            { title: 'PyTorch', url: 'https://pytorch.org', category: 'ذكاء اصطناعي', tags: ['ذكاء اصطناعي', 'تعلم آلة'] },
+            
+            // روابط برمجة
+            { title: 'GitHub', url: 'https://github.com', category: 'برمجة', tags: ['برمجة', 'Git'] },
+            { title: 'Stack Overflow', url: 'https://stackoverflow.com', category: 'برمجة', tags: ['برمجة', 'مساعدة'] },
+            { title: 'MDN Web Docs', url: 'https://developer.mozilla.org', category: 'برمجة', tags: ['برمجة', 'وثائق'] },
+            { title: 'W3Schools', url: 'https://www.w3schools.com', category: 'برمجة', tags: ['برمجة', 'تعليم'] },
+            
+            // روابط فديو
+            { title: 'YouTube', url: 'https://www.youtube.com', category: 'فديو', tags: ['فديو', 'يوتيوب'] },
+            { title: 'Vimeo', url: 'https://vimeo.com', category: 'فديو', tags: ['فديو', 'محتوى'] },
+            { title: 'TikTok', url: 'https://www.tiktok.com', category: 'فديو', tags: ['فديو', 'قصير'] },
+            
+            // روابط سوشيل ميديا
+            { title: 'Facebook', url: 'https://www.facebook.com', category: 'سوشيل ميديا', tags: ['سوشيل ميديا', 'فيسبوك'] },
+            { title: 'Twitter', url: 'https://twitter.com', category: 'سوشيل ميديا', tags: ['سوشيل ميديا', 'تويتر'] },
+            { title: 'Instagram', url: 'https://www.instagram.com', category: 'سوشيل ميديا', tags: ['سوشيل ميديا', 'انستغرام'] },
+            { title: 'LinkedIn', url: 'https://www.linkedin.com', category: 'سوشيل ميديا', tags: ['سوشيل ميديا', 'مهني'] },
+            
+            // روابط بحث
+            { title: 'Google', url: 'https://www.google.com', category: 'بحث', tags: ['بحث', 'محرك بحث'] },
+            { title: 'Bing', url: 'https://www.bing.com', category: 'بحث', tags: ['بحث', 'محرك بحث'] },
+            { title: 'DuckDuckGo', url: 'https://duckduckgo.com', category: 'بحث', tags: ['بحث', 'خصوصية'] },
+            
+            // روابط تصميم
+            { title: 'Figma', url: 'https://www.figma.com', category: 'تصميم', tags: ['تصميم', 'UI/UX'] },
+            { title: 'Adobe Creative Cloud', url: 'https://www.adobe.com', category: 'تصميم', tags: ['تصميم', 'أدوبي'] },
+            { title: 'Canva', url: 'https://www.canva.com', category: 'تصميم', tags: ['تصميم', 'سهل'] },
+            
+            // روابط ايكونات
+            { title: 'Flaticon', url: 'https://www.flaticon.com', category: 'ايكونات', tags: ['ايكونات', 'مجاني'] },
+            { title: 'Icons8', url: 'https://icons8.com', category: 'ايكونات', tags: ['ايكونات', 'متنوع'] },
+            { title: 'Feather Icons', url: 'https://feathericons.com', category: 'ايكونات', tags: ['ايكونات', 'بسيط'] }
+          ];
+
+          // إضافة الروابط
+          for (const linkData of sampleLinks) {
+            const category = state.categories.find(cat => cat.name === linkData.category);
+            if (category) {
+              addLink({
+                name: linkData.title,
+                url: linkData.url,
+                categoryId: category.id,
+                subcategoryId: '',
+                tags: linkData.tags,
+                description: `رابط ${linkData.title} - ${linkData.category}`,
+                isHighlighted: false
+              });
+            }
+          }
+        }, 100);
+
+        await Swal.fire({
+          title: 'تم بنجاح!',
+          text: 'تم إضافة البيانات التجريبية بنجاح (8 أقسام، 8 مجموعات، 25 رابط)',
+          icon: 'success',
+          timer: 3000,
+          showConfirmButton: false,
+          allowEscapeKey: true,
+          allowOutsideClick: true,
+        });
+      }
+    } catch (error) {
+      console.error('خطأ في إضافة البيانات التجريبية:', error);
+      await Swal.fire({
+        title: 'خطأ!',
+        text: 'حدث خطأ أثناء إضافة البيانات التجريبية',
+        icon: 'error',
+        allowEscapeKey: true,
+        allowOutsideClick: true,
+      });
+    }
+  }, [state.categories, state.groups, addCategory, addGroup, addLink]);
+
+  // useEffect منفصل لـ handleAddSampleData
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl/Cmd + Shift + D لإضافة بيانات تجريبية
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'D') {
+        event.preventDefault();
+        handleAddSampleData();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleAddSampleData]);
 
   const handleAddSubcategory = async () => {
     if (state.categories.length === 0) {
@@ -1221,6 +1385,13 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               إضافة أقسام رئيسية
             </button>
             <button
+              onClick={handleAddSampleData}
+              className="bg-green-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-green-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              <PlusIcon className="h-5 w-5 ml-2" />
+              إضافة بيانات تجريبية
+            </button>
+            <button
               onClick={handleAddSubcategory}
               className="bg-teal-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-teal-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
@@ -1363,7 +1534,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {state.groups.map(group => {
               const groupLinks = group.linkIds
                 .map((id: string) => state.links.find((link: Link) => link.id === id))
