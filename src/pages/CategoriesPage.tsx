@@ -154,139 +154,147 @@ export function CategoriesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-cairo">
-          إدارة الأقسام
-        </h1>
-        <div className="flex space-x-4 space-x-reverse">
-          <button
-            onClick={() => setShowSubcategoryForm(true)}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-green-700 transition-colors font-tajawal"
-          >
-            <PlusIcon className="h-5 w-5 ml-2" />
-            قسم فرعي
-          </button>
-          <button
-            onClick={() => setShowCategoryForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition-colors font-tajawal"
-          >
-            <PlusIcon className="h-5 w-5 ml-2" />
-            قسم رئيسي
-          </button>
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-cairo">
+            إدارة الأقسام
+          </h1>
+          <div className="flex space-x-4 space-x-reverse">
+            <button
+              onClick={() => setShowSubcategoryForm(true)}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-green-700 transition-colors font-tajawal"
+            >
+              <PlusIcon className="h-5 w-5 ml-2" />
+              قسم فرعي
+            </button>
+            <button
+              onClick={() => setShowCategoryForm(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition-colors font-tajawal"
+            >
+              <PlusIcon className="h-5 w-5 ml-2" />
+              قسم رئيسي
+            </button>
+          </div>
         </div>
       </div>
 
       {/* الأقسام الرئيسية */}
-      <div className="space-y-4">
-        {state.categories.map(category => {
-          const subcategories = getSubcategoriesForCategory(category.id);
-          const linksCount = getLinksCountForCategory(category.id);
-          
-          return (
-            <div key={category.id} className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-              {/* القسم الرئيسي */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <FolderIcon className="h-6 w-6 text-blue-600 ml-3" />
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white font-tajawal">
-                        {category.name}
-                      </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 font-tajawal">
-                        {linksCount} رابط • {subcategories.length} قسم فرعي
-                      </p>
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {state.categories.map(category => {
+            const subcategories = getSubcategoriesForCategory(category.id);
+            const linksCount = getLinksCountForCategory(category.id);
+            
+            return (
+              <div key={category.id} className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 flex flex-col">
+                {/* القسم الرئيسي */}
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                      <FolderIcon className="h-6 w-6 text-blue-600 ml-3" />
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white font-tajawal">
+                          {category.name}
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 font-tajawal">
+                          {linksCount} رابط • {subcategories.length} قسم فرعي
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex space-x-2 space-x-reverse">
+                      <button
+                        onClick={() => {
+                          setSelectedCategoryForSub(category.id);
+                          setSubcategoryParent(category.id);
+                          setShowSubcategoryForm(true);
+                        }}
+                        className="p-2 text-green-600 hover:bg-green-100 dark:hover:bg-green-900 rounded-md transition-colors"
+                        title="إضافة قسم فرعي"
+                      >
+                        <PlusIcon className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleEditCategory(category)}
+                        className="p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-md transition-colors"
+                        title="تعديل"
+                      >
+                        <PencilIcon className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCategory(category)}
+                        className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900 rounded-md transition-colors"
+                        title="حذف"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
-                  
-                  <div className="flex space-x-2 space-x-reverse">
-                    <button
-                      onClick={() => {
-                        setSelectedCategoryForSub(category.id);
-                        setSubcategoryParent(category.id);
-                        setShowSubcategoryForm(true);
-                      }}
-                      className="p-2 text-green-600 hover:bg-green-100 dark:hover:bg-green-900 rounded-md transition-colors"
-                      title="إضافة قسم فرعي"
-                    >
-                      <PlusIcon className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleEditCategory(category)}
-                      className="p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-md transition-colors"
-                      title="تعديل"
-                    >
-                      <PencilIcon className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteCategory(category)}
-                      className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900 rounded-md transition-colors"
-                      title="حذف"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
-                  </div>
                 </div>
-              </div>
 
-              {/* الأقسام الفرعية */}
-              {subcategories.length > 0 && (
-                <div className="p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {subcategories.map(subcategory => {
-                      const subLinksCount = getLinksCountForSubcategory(subcategory.id);
-                      
-                      return (
-                        <div
-                          key={subcategory.id}
-                          className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-md"
-                        >
-                          <div className="flex items-center">
-                            <DocumentIcon className="h-4 w-4 text-gray-500 ml-2" />
-                            <div>
-                              <p className="text-sm font-medium text-gray-900 dark:text-white font-tajawal">
-                                {subcategory.name}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-tajawal">
-                                {subLinksCount} رابط
-                              </p>
+                {/* الأقسام الفرعية */}
+                <div className="flex-1 p-4">
+                  {subcategories.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-3">
+                      {subcategories.map(subcategory => {
+                        const subLinksCount = getLinksCountForSubcategory(subcategory.id);
+                        
+                        return (
+                          <div
+                            key={subcategory.id}
+                            className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-md"
+                          >
+                            <div className="flex items-center">
+                              <DocumentIcon className="h-4 w-4 text-gray-500 ml-2" />
+                              <div>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white font-tajawal">
+                                  {subcategory.name}
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-tajawal">
+                                  {subLinksCount} رابط
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex space-x-1 space-x-reverse">
+                              <button
+                                onClick={() => handleEditSubcategory(subcategory)}
+                                className="p-1 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-800 rounded transition-colors"
+                                title="تعديل"
+                              >
+                                <PencilIcon className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteSubcategory(subcategory)}
+                                className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-800 rounded transition-colors"
+                                title="حذف"
+                              >
+                                <TrashIcon className="h-3 w-3" />
+                              </button>
                             </div>
                           </div>
-                          
-                          <div className="flex space-x-1 space-x-reverse">
-                            <button
-                              onClick={() => handleEditSubcategory(subcategory)}
-                              className="p-1 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-800 rounded transition-colors"
-                              title="تعديل"
-                            >
-                              <PencilIcon className="h-3 w-3" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteSubcategory(subcategory)}
-                              className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-800 rounded transition-colors"
-                              title="حذف"
-                            >
-                              <TrashIcon className="h-3 w-3" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400 font-tajawal">
+                      لا توجد أقسام فرعية
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {state.categories.length === 0 && (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400 font-tajawal">
-          لا توجد أقسام بعد. ابدأ بإضافة قسم جديد!
+              </div>
+            );
+          })}
         </div>
-      )}
+
+        {state.categories.length === 0 && (
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400 font-tajawal">
+            لا توجد أقسام بعد. ابدأ بإضافة قسم جديد!
+          </div>
+        )}
+      </div>
 
       {/* نموذج إضافة/تعديل قسم رئيسي */}
       {showCategoryForm && (

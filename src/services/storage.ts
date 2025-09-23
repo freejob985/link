@@ -56,7 +56,8 @@ class StorageService {
         tags: ['تصميم', 'UI', 'تعاون'],
         clicks: 25,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        icon: 'https://cdn-icons-png.flaticon.com/128/5968/5968705.png'
       },
       {
         id: '2',
@@ -68,7 +69,8 @@ class StorageService {
         tags: ['git', 'كود', 'تعاون'],
         clicks: 18,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        icon: 'https://cdn-icons-png.flaticon.com/128/733/733609.png'
       },
       {
         id: '3',
@@ -80,7 +82,8 @@ class StorageService {
         tags: ['تصميم', 'قوالب', 'سهل'],
         clicks: 32,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        icon: 'https://cdn-icons-png.flaticon.com/128/5968/5968705.png'
       }
     ];
 

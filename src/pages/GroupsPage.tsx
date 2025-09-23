@@ -87,28 +87,39 @@ export function GroupsPage() {
       return;
     }
 
-    const result = await Swal.fire({
-      title: 'فتح المجموعة',
-      text: `سيتم فتح ${validLinks.length} رابط في تبويبات منفصلة. هل تريد المتابعة؟`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3b82f6',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'نعم، افتح الجميع',
-      cancelButtonText: 'إلغاء',
-      reverseButtons: true
-    });
-
-    if (result.isConfirmed) {
-      validLinks.forEach(link => {
-        if (link) {
-          recordClick(link.id);
-          setTimeout(() => {
-            window.open(link.url, '_blank', 'noopener,noreferrer');
-          }, 100);
+    if (validLinks.length === 1) {
+      // فتح رابط واحد فقط
+      const link = validLinks[0];
+      recordClick(link.id);
+      window.open(link.url, '_blank', 'noopener,noreferrer');
+      toast.success('تم فتح الرابط');
+    } else {
+      // عرض قائمة للاختيار من بين عدة روابط
+      const { value: selectedLinkId } = await Swal.fire({
+        title: 'اختر رابط للفتح',
+        input: 'select',
+        inputOptions: validLinks.reduce((acc, link) => {
+          acc[link.id] = link.name;
+          return acc;
+        }, {} as Record<string, string>),
+        showCancelButton: true,
+        confirmButtonText: 'فتح',
+        cancelButtonText: 'إلغاء',
+        inputValidator: (value) => {
+          if (!value) {
+            return 'يرجى اختيار رابط';
+          }
         }
       });
-      toast.success(`تم فتح ${validLinks.length} رابط`);
+
+      if (selectedLinkId) {
+        const selectedLink = validLinks.find(link => link.id === selectedLinkId);
+        if (selectedLink) {
+          recordClick(selectedLink.id);
+          window.open(selectedLink.url, '_blank', 'noopener,noreferrer');
+          toast.success('تم فتح الرابط');
+        }
+      }
     }
   };
 

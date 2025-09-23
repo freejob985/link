@@ -10,6 +10,7 @@ export interface Link {
   createdAt: string;
   updatedAt: string;
   isHighlighted?: boolean; // للبحث
+  icon?: string; // رابط الأيقونة
 }
 
 export interface Category {
@@ -58,4 +59,7 @@ export interface AppData {
 export type Theme = 'light' | 'dark';
 
 export interface AIsuggestion {
- 
+  name?: string;
+  description: string;
+  tags: string[];
+}
