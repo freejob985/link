@@ -347,7 +347,8 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
         ...prev,
         name: suggestion.name || prev.name,
         description: suggestion.description || prev.description,
-        tags: [...new Set([...prev.tags, ...suggestion.tags])]
+        tags: [...new Set([...prev.tags, ...suggestion.tags])],
+        icon: suggestion.icon || prev.icon
       }));
       
       toast.success('تم الحصول على الاقتراحات');
@@ -1217,9 +1218,20 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 font-tajawal">
-                    رابط الأيقونة
-                  </label>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 font-tajawal">
+                      رابط الأيقونة
+                    </label>
+                    <a
+                      href="https://www.flaticon.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-tajawal flex items-center"
+                    >
+                      <ArrowTopRightOnSquareIcon className="h-3 w-3 ml-1" />
+                      Flaticon للمساعدة
+                    </a>
+                  </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <input
                       type="url"
@@ -1256,7 +1268,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
                       className="flex items-center text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 font-tajawal"
                     >
                       <SparklesIcon className="h-4 w-4 ml-1" />
-                      {isLoadingAI ? 'جاري الحصول على الاقتراحات...' : 'اقتراح ذكي للاسم والوصف'}
+                      {isLoadingAI ? 'جاري الحصول على الاقتراحات...' : 'اقتراح ذكي للاسم والوصف والأيقونة'}
                     </button>
                   </div>
                   <textarea

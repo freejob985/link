@@ -63,4 +63,5 @@ export interface AIsuggestion {
   name?: string;
   description: string;
   tags: string[];
+  icon?: string;
 }

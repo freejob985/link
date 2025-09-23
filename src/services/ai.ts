@@ -28,7 +28,7 @@ class AIService {
         const apiKey = this.getCurrentAPIKey();
 
         const prompt = `
-          اقترح اسماً مناسباً ووصفاً مختصراً (لا يزيد عن 100 حرف) و 5 كلمات دلالية مناسبة لهذا الرابط:
+          اقترح اسماً مناسباً ووصفاً مختصراً (لا يزيد عن 100 حرف) و 5 كلمات دلالية مناسبة و رابط أيقونة مناسبة لهذا الرابط:
           الرابط: ${url}
           ${name ? `الاسم الحالي: ${name}` : ''}
           
@@ -36,7 +36,8 @@ class AIService {
           {
             "name": "اسم مناسب باللغة العربية",
             "description": "وصف مختصر باللغة العربية",
-            "tags": ["كلمة1", "كلمة2", "كلمة3", "كلمة4", "كلمة5"]
+            "tags": ["كلمة1", "كلمة2", "كلمة3", "كلمة4", "كلمة5"],
+            "icon": "رابط أيقونة مناسبة من Flaticon أو أي مصدر آخر"
           }
         `;
 
@@ -82,7 +83,8 @@ class AIService {
         return {
           name: result.name || '',
           description: result.description || '',
-          tags: result.tags || []
+          tags: result.tags || [],
+          icon: result.icon || ''
         };
 
       } catch (error: unknown) {
