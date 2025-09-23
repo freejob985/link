@@ -45,7 +45,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   const [showMultiLinkForm, setShowMultiLinkForm] = useState(false);
   const [multiLinks, setMultiLinks] = useState<Array<{name: string, url: string}>>([{name: '', url: ''}]);
-  const linksPerPage = 16;
+  const linksPerPage = 21;
 
   // استخراج اسم الموقع من الرابط
   const extractDomainName = (url: string): string => {
@@ -781,7 +781,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               أسماء الأقسام الرئيسية
             </label>
             <div class="relative">
-              <textarea id="categoryNames" 
+            <textarea id="categoryNames" 
                         placeholder="قسم التصميم&#10;قسم البرمجة&#10;قسم التسويق&#10;قسم المبيعات&#10;قسم الموارد البشرية"
                         class="w-full h-40 p-4 border-2 border-gray-300 dark:border-gray-600 rounded-xl text-right resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white font-tajawal text-sm leading-relaxed"
                         rows="6"></textarea>
@@ -858,7 +858,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
       names.forEach((name: string) => {
         if (name.trim()) {
           try {
-            addCategory(name.trim());
+          addCategory(name.trim());
             addedCount++;
           } catch (error) {
             console.error('خطأ في إضافة القسم:', name, error);
@@ -955,72 +955,73 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
           }
         }
 
-        // انتظار قليل ثم إضافة الروابط
-        setTimeout(() => {
-          const sampleLinks = [
-            // روابط رياضة
-            { title: 'ESPN', url: 'https://www.espn.com', category: 'رياضة', tags: ['رياضة', 'أخبار'] },
-            { title: 'FIFA', url: 'https://www.fifa.com', category: 'رياضة', tags: ['رياضة', 'كرة قدم'] },
-            { title: 'NBA', url: 'https://www.nba.com', category: 'رياضة', tags: ['رياضة', 'كرة سلة'] },
-            
-            // روابط ذكاء اصطناعي
-            { title: 'OpenAI', url: 'https://openai.com', category: 'ذكاء اصطناعي', tags: ['ذكاء اصطناعي', 'AI'] },
-            { title: 'TensorFlow', url: 'https://tensorflow.org', category: 'ذكاء اصطناعي', tags: ['ذكاء اصطناعي', 'تعلم آلة'] },
-            { title: 'PyTorch', url: 'https://pytorch.org', category: 'ذكاء اصطناعي', tags: ['ذكاء اصطناعي', 'تعلم آلة'] },
-            
-            // روابط برمجة
-            { title: 'GitHub', url: 'https://github.com', category: 'برمجة', tags: ['برمجة', 'Git'] },
-            { title: 'Stack Overflow', url: 'https://stackoverflow.com', category: 'برمجة', tags: ['برمجة', 'مساعدة'] },
-            { title: 'MDN Web Docs', url: 'https://developer.mozilla.org', category: 'برمجة', tags: ['برمجة', 'وثائق'] },
-            { title: 'W3Schools', url: 'https://www.w3schools.com', category: 'برمجة', tags: ['برمجة', 'تعليم'] },
-            
-            // روابط فديو
-            { title: 'YouTube', url: 'https://www.youtube.com', category: 'فديو', tags: ['فديو', 'يوتيوب'] },
-            { title: 'Vimeo', url: 'https://vimeo.com', category: 'فديو', tags: ['فديو', 'محتوى'] },
-            { title: 'TikTok', url: 'https://www.tiktok.com', category: 'فديو', tags: ['فديو', 'قصير'] },
-            
-            // روابط سوشيل ميديا
-            { title: 'Facebook', url: 'https://www.facebook.com', category: 'سوشيل ميديا', tags: ['سوشيل ميديا', 'فيسبوك'] },
-            { title: 'Twitter', url: 'https://twitter.com', category: 'سوشيل ميديا', tags: ['سوشيل ميديا', 'تويتر'] },
-            { title: 'Instagram', url: 'https://www.instagram.com', category: 'سوشيل ميديا', tags: ['سوشيل ميديا', 'انستغرام'] },
-            { title: 'LinkedIn', url: 'https://www.linkedin.com', category: 'سوشيل ميديا', tags: ['سوشيل ميديا', 'مهني'] },
-            
-            // روابط بحث
-            { title: 'Google', url: 'https://www.google.com', category: 'بحث', tags: ['بحث', 'محرك بحث'] },
-            { title: 'Bing', url: 'https://www.bing.com', category: 'بحث', tags: ['بحث', 'محرك بحث'] },
-            { title: 'DuckDuckGo', url: 'https://duckduckgo.com', category: 'بحث', tags: ['بحث', 'خصوصية'] },
-            
-            // روابط تصميم
-            { title: 'Figma', url: 'https://www.figma.com', category: 'تصميم', tags: ['تصميم', 'UI/UX'] },
-            { title: 'Adobe Creative Cloud', url: 'https://www.adobe.com', category: 'تصميم', tags: ['تصميم', 'أدوبي'] },
-            { title: 'Canva', url: 'https://www.canva.com', category: 'تصميم', tags: ['تصميم', 'سهل'] },
-            
-            // روابط ايكونات
-            { title: 'Flaticon', url: 'https://www.flaticon.com', category: 'ايكونات', tags: ['ايكونات', 'مجاني'] },
-            { title: 'Icons8', url: 'https://icons8.com', category: 'ايكونات', tags: ['ايكونات', 'متنوع'] },
-            { title: 'Feather Icons', url: 'https://feathericons.com', category: 'ايكونات', tags: ['ايكونات', 'بسيط'] }
-          ];
+        // إضافة الروابط مباشرة
+        const sampleLinks = [
+          // روابط رياضة
+          { title: 'ESPN', url: 'https://www.espn.com', category: 'رياضة', tags: ['رياضة', 'أخبار'] },
+          { title: 'FIFA', url: 'https://www.fifa.com', category: 'رياضة', tags: ['رياضة', 'كرة قدم'] },
+          { title: 'NBA', url: 'https://www.nba.com', category: 'رياضة', tags: ['رياضة', 'كرة سلة'] },
+          
+          // روابط ذكاء اصطناعي
+          { title: 'OpenAI', url: 'https://openai.com', category: 'ذكاء اصطناعي', tags: ['ذكاء اصطناعي', 'AI'] },
+          { title: 'TensorFlow', url: 'https://tensorflow.org', category: 'ذكاء اصطناعي', tags: ['ذكاء اصطناعي', 'تعلم آلة'] },
+          { title: 'PyTorch', url: 'https://pytorch.org', category: 'ذكاء اصطناعي', tags: ['ذكاء اصطناعي', 'تعلم آلة'] },
+          
+          // روابط برمجة
+          { title: 'GitHub', url: 'https://github.com', category: 'برمجة', tags: ['برمجة', 'Git'] },
+          { title: 'Stack Overflow', url: 'https://stackoverflow.com', category: 'برمجة', tags: ['برمجة', 'مساعدة'] },
+          { title: 'MDN Web Docs', url: 'https://developer.mozilla.org', category: 'برمجة', tags: ['برمجة', 'وثائق'] },
+          { title: 'W3Schools', url: 'https://www.w3schools.com', category: 'برمجة', tags: ['برمجة', 'تعليم'] },
+          
+          // روابط فديو
+          { title: 'YouTube', url: 'https://www.youtube.com', category: 'فديو', tags: ['فديو', 'يوتيوب'] },
+          { title: 'Vimeo', url: 'https://vimeo.com', category: 'فديو', tags: ['فديو', 'محتوى'] },
+          { title: 'TikTok', url: 'https://www.tiktok.com', category: 'فديو', tags: ['فديو', 'قصير'] },
+          
+          // روابط سوشيل ميديا
+          { title: 'Facebook', url: 'https://www.facebook.com', category: 'سوشيل ميديا', tags: ['سوشيل ميديا', 'فيسبوك'] },
+          { title: 'Twitter', url: 'https://twitter.com', category: 'سوشيل ميديا', tags: ['سوشيل ميديا', 'تويتر'] },
+          { title: 'Instagram', url: 'https://www.instagram.com', category: 'سوشيل ميديا', tags: ['سوشيل ميديا', 'انستغرام'] },
+          { title: 'LinkedIn', url: 'https://www.linkedin.com', category: 'سوشيل ميديا', tags: ['سوشيل ميديا', 'مهني'] },
+          
+          // روابط بحث
+          { title: 'Google', url: 'https://www.google.com', category: 'بحث', tags: ['بحث', 'محرك بحث'] },
+          { title: 'Bing', url: 'https://www.bing.com', category: 'بحث', tags: ['بحث', 'محرك بحث'] },
+          { title: 'DuckDuckGo', url: 'https://duckduckgo.com', category: 'بحث', tags: ['بحث', 'خصوصية'] },
+          
+          // روابط تصميم
+          { title: 'Figma', url: 'https://www.figma.com', category: 'تصميم', tags: ['تصميم', 'UI/UX'] },
+          { title: 'Adobe Creative Cloud', url: 'https://www.adobe.com', category: 'تصميم', tags: ['تصميم', 'أدوبي'] },
+          { title: 'Canva', url: 'https://www.canva.com', category: 'تصميم', tags: ['تصميم', 'سهل'] },
+          
+          // روابط ايكونات
+          { title: 'Flaticon', url: 'https://www.flaticon.com', category: 'ايكونات', tags: ['ايكونات', 'مجاني'] },
+          { title: 'Icons8', url: 'https://icons8.com', category: 'ايكونات', tags: ['ايكونات', 'متنوع'] },
+          { title: 'Feather Icons', url: 'https://feathericons.com', category: 'ايكونات', tags: ['ايكونات', 'بسيط'] }
+        ];
 
-          // إضافة الروابط
-          for (const linkData of sampleLinks) {
-            const category = state.categories.find(cat => cat.name === linkData.category);
-            if (category) {
-              addLink({
-                name: linkData.title,
-                url: linkData.url,
-                categoryId: category.id,
-                subcategoryId: '',
-                tags: linkData.tags,
-                description: `رابط ${linkData.title} - ${linkData.category}`,
-                isHighlighted: false
-              });
-            }
+        // إضافة الروابط
+        for (const linkData of sampleLinks) {
+          const category = state.categories.find(cat => cat.name === linkData.category);
+          if (category) {
+            addLink({
+              name: linkData.title,
+              url: linkData.url,
+              categoryId: category.id,
+              subcategoryId: '',
+              tags: linkData.tags,
+              description: `رابط ${linkData.title} - ${linkData.category}`,
+              isHighlighted: false
+            });
           }
-        }, 100);
+        }
 
         await Swal.fire({
           title: 'تم بنجاح!',
-          text: 'تم إضافة البيانات التجريبية بنجاح (8 أقسام، 8 مجموعات، 25 رابط)',
+          text: `تم إضافة البيانات التجريبية بنجاح:
+          • ${state.categories.length} أقسام رئيسية
+          • ${state.groups.length} مجموعات
+          • ${sampleLinks.length} رابط`,
           icon: 'success',
           timer: 3000,
           showConfirmButton: false,
@@ -1188,7 +1189,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
                 أسماء الأقسام الفرعية
               </label>
               <div class="relative">
-                <textarea id="subcategoryNames" 
+              <textarea id="subcategoryNames" 
                           placeholder="UI/UX&#10;جرافيك&#10;تصميم ويب&#10;تصميم تطبيقات&#10;تصميم شعارات"
                           class="w-full h-40 p-4 border-2 border-gray-300 dark:border-gray-600 rounded-xl text-right resize-none focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-800 dark:text-white font-tajawal text-sm leading-relaxed"
                           rows="6"></textarea>
@@ -1267,7 +1268,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
         names.forEach((name: string) => {
           if (name.trim()) {
             try {
-              addSubcategory(name.trim(), categoryId);
+            addSubcategory(name.trim(), categoryId);
               addedCount++;
             } catch (error) {
               console.error('خطأ في إضافة القسم الفرعي:', name, error);
@@ -1441,9 +1442,9 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
       <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-4 space-x-reverse">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-cairo">
-              إدارة الروابط
-            </h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-cairo">
+            إدارة الروابط
+          </h1>
             <button
               onClick={toggleLinksSection}
               className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -1519,7 +1520,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
 
       {/* البحث والتصفية */}
       {!state.linksSectionHidden && (
-        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-4">
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="relative">
             <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-3 text-gray-400" />
@@ -1582,7 +1583,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
             {filteredLinks.length} من {state.links.length}
           </div>
         </div>
-        </div>
+      </div>
       )}
 
       {/* زر إظهار قسم المجموعات عندما يكون مخفياً */}
@@ -1673,7 +1674,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
 
       {/* قائمة الروابط */}
       <div className="flex-1 overflow-y-auto p-4 w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-7 gap-4 w-full">
           {paginatedLinks.map(link => (
             <div 
               key={link.id} 
