@@ -1047,12 +1047,12 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
       {/* قائمة السياق */}
       {showContextMenu && (
         <div
-          className="fixed bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-3 z-50 min-w-72"
+          className="fixed bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50 min-w-48"
           style={{ left: contextMenuPosition.x, top: contextMenuPosition.y }}
         >
           {/* قسم التنقل */}
-          <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">التنقل السريع</h3>
+          <div className="px-3 py-1 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">التنقل السريع</h3>
           </div>
           
           <button
@@ -1060,13 +1060,10 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               onNavigate?.('links');
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900 w-full text-right transition-colors"
           >
-            <LinkIcon className="h-4 w-4 ml-3 text-blue-600" />
-            <div>
-              <div className="font-medium">الروابط</div>
-              <div className="text-xs text-gray-500">عرض وإدارة جميع الروابط</div>
-            </div>
+            <LinkIcon className="h-4 w-4 ml-2 text-blue-600" />
+            <span className="font-medium">الروابط</span>
           </button>
           
           <button
@@ -1074,13 +1071,10 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               onNavigate?.('categories');
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900 w-full text-right transition-colors"
           >
-            <FolderPlusIcon className="h-4 w-4 ml-3 text-purple-600" />
-            <div>
-              <div className="font-medium">الأقسام</div>
-              <div className="text-xs text-gray-500">إدارة الأقسام الرئيسية والفرعية</div>
-            </div>
+            <FolderPlusIcon className="h-4 w-4 ml-2 text-purple-600" />
+            <span className="font-medium">الأقسام</span>
           </button>
           
           <button
@@ -1088,13 +1082,10 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               onNavigate?.('groups');
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900 w-full text-right transition-colors"
           >
-            <TagIcon className="h-4 w-4 ml-3 text-indigo-600" />
-            <div>
-              <div className="font-medium">المجموعات</div>
-              <div className="text-xs text-gray-500">إدارة مجموعات الروابط</div>
-            </div>
+            <TagIcon className="h-4 w-4 ml-2 text-indigo-600" />
+            <span className="font-medium">المجموعات</span>
           </button>
           
           <button
@@ -1102,20 +1093,17 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               onNavigate?.('stats');
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900 w-full text-right transition-colors"
           >
-            <ChartBarIcon className="h-4 w-4 ml-3 text-green-600" />
-            <div>
-              <div className="font-medium">الإحصائيات</div>
-              <div className="text-xs text-gray-500">عرض الإحصائيات والتحليلات</div>
-            </div>
+            <ChartBarIcon className="h-4 w-4 ml-2 text-green-600" />
+            <span className="font-medium">الإحصائيات</span>
           </button>
 
-          <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+          <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
           
           {/* قسم الإضافة السريعة */}
-          <div className="px-4 py-2">
-            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">إضافة سريع</h3>
+          <div className="px-3 py-1">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">إضافة سريع</h3>
           </div>
           
           <button
@@ -1123,13 +1111,10 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               setShowForm(true);
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900 w-full text-right transition-colors"
           >
-            <LinkIcon className="h-4 w-4 ml-3 text-blue-600" />
-            <div>
-              <div className="font-medium">إضافة رابط</div>
-              <div className="text-xs text-gray-500">إضافة رابط جديد</div>
-            </div>
+            <LinkIcon className="h-4 w-4 ml-2 text-blue-600" />
+            <span className="font-medium">إضافة رابط</span>
           </button>
           
           <button
@@ -1137,13 +1122,10 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               setShowMultiLinkForm(true);
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900 w-full text-right transition-colors"
           >
-            <PlusIcon className="h-4 w-4 ml-3 text-green-600" />
-            <div>
-              <div className="font-medium">إضافة روابط متعددة</div>
-              <div className="text-xs text-gray-500">إضافة عدة روابط مرة واحدة</div>
-            </div>
+            <PlusIcon className="h-4 w-4 ml-2 text-green-600" />
+            <span className="font-medium">إضافة روابط متعددة</span>
           </button>
           
           <button
@@ -1151,13 +1133,10 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               handleAddCategory();
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900 w-full text-right transition-colors"
           >
-            <FolderPlusIcon className="h-4 w-4 ml-3 text-purple-600" />
-            <div>
-              <div className="font-medium">إضافة قسم رئيسي</div>
-              <div className="text-xs text-gray-500">إضافة أقسام جديدة</div>
-            </div>
+            <FolderPlusIcon className="h-4 w-4 ml-2 text-purple-600" />
+            <span className="font-medium">إضافة قسم رئيسي</span>
           </button>
           
           <button
@@ -1165,13 +1144,10 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               handleAddSubcategory();
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900 w-full text-right transition-colors"
           >
-            <FolderPlusIcon className="h-4 w-4 ml-3 text-orange-600" />
-            <div>
-              <div className="font-medium">إضافة قسم فرعي</div>
-              <div className="text-xs text-gray-500">إضافة أقسام فرعية</div>
-            </div>
+            <FolderPlusIcon className="h-4 w-4 ml-2 text-orange-600" />
+            <span className="font-medium">إضافة قسم فرعي</span>
           </button>
           
           <button
@@ -1179,20 +1155,17 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               handleAddGroup();
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900 w-full text-right transition-colors"
           >
-            <TagIcon className="h-4 w-4 ml-3 text-indigo-600" />
-            <div>
-              <div className="font-medium">إضافة مجموعة</div>
-              <div className="text-xs text-gray-500">إنشاء مجموعة روابط</div>
-            </div>
+            <TagIcon className="h-4 w-4 ml-2 text-indigo-600" />
+            <span className="font-medium">إضافة مجموعة</span>
           </button>
 
-          <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+          <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
           
           {/* قسم التصدير والاستيراد */}
-          <div className="px-4 py-2">
-            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">البيانات</h3>
+          <div className="px-3 py-1">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">البيانات</h3>
           </div>
           
           <button
@@ -1200,21 +1173,15 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               exportData();
               setShowContextMenu(false);
             }}
-            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900 w-full text-right transition-colors rounded-lg mx-2 my-1"
+            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900 w-full text-right transition-colors"
           >
-            <ArrowDownTrayIcon className="h-4 w-4 ml-3 text-green-600" />
-            <div>
-              <div className="font-medium">تصدير البيانات</div>
-              <div className="text-xs text-gray-500">حفظ نسخة احتياطية من البيانات</div>
-            </div>
+            <ArrowDownTrayIcon className="h-4 w-4 ml-2 text-green-600" />
+            <span className="font-medium">تصدير البيانات</span>
           </button>
           
-          <label className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900 w-full text-right transition-colors rounded-lg mx-2 my-1 cursor-pointer">
-            <ArrowUpTrayIcon className="h-4 w-4 ml-3 text-blue-600" />
-            <div>
-              <div className="font-medium">استيراد البيانات</div>
-              <div className="text-xs text-gray-500">استعادة البيانات من ملف</div>
-            </div>
+          <label className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900 w-full text-right transition-colors cursor-pointer">
+            <ArrowUpTrayIcon className="h-4 w-4 ml-2 text-blue-600" />
+            <span className="font-medium">استيراد البيانات</span>
             <input
               type="file"
               accept=".json"
