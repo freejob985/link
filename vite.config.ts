@@ -9,14 +9,8 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   build: {
-    rollupOptions: {
-      external: [],
-      output: {
-        manualChunks: undefined,
-      },
-    },
-    target: 'esnext',
-    minify: 'terser',
+    outDir: 'dist',
+    assetsDir: 'assets',
   },
   server: {
     port: 3000,
