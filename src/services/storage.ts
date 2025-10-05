@@ -107,7 +107,10 @@ class StorageService {
       categories,
       subcategories,
       groups,
-      clickRecords: []
+      clickRecords: [],
+      sidebarCollapsed: true,
+      groupsSectionHidden: false,
+      linksSectionHidden: false
     };
   }
 

@@ -55,6 +55,9 @@ export interface AppData {
   subcategories: Subcategory[];
   groups: Group[];
   clickRecords: ClickRecord[];
+  sidebarCollapsed?: boolean;
+  groupsSectionHidden?: boolean;
+  linksSectionHidden?: boolean;
 }
 
 export type Theme = 'light' | 'dark';

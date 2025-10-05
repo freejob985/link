@@ -36,7 +36,7 @@ type AppAction =
 const initialState: AppState = {
   theme: 'light',
   showSplash: true,
-  sidebarCollapsed: false,
+  sidebarCollapsed: true,
   groupsSectionHidden: false,
   linksSectionHidden: false,
   links: [],
@@ -367,7 +367,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       categories: state.categories,
       subcategories: state.subcategories,
       groups: state.groups,
-      clickRecords: state.clickRecords
+      clickRecords: state.clickRecords,
+      sidebarCollapsed: state.sidebarCollapsed,
+      groupsSectionHidden: state.groupsSectionHidden,
+      linksSectionHidden: state.linksSectionHidden
     };
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -385,6 +388,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const importData = (data: AppData) => {
     dispatch({ type: 'SET_DATA', payload: data });
+    
+    // حفظ إعدادات الواجهة
+    if (data.sidebarCollapsed !== undefined) {
+      localStorage.setItem('sidebarCollapsed', data.sidebarCollapsed.toString());
+    }
+    if (data.groupsSectionHidden !== undefined) {
+      localStorage.setItem('groupsSectionHidden', data.groupsSectionHidden.toString());
+    }
+    if (data.linksSectionHidden !== undefined) {
+      localStorage.setItem('linksSectionHidden', data.linksSectionHidden.toString());
+    }
+    
     toast.success('تم استيراد البيانات بنجاح');
   };
 
@@ -398,7 +413,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       categories: [],
       subcategories: [],
       groups: [],
-      clickRecords: []
+      clickRecords: [],
+      sidebarCollapsed: false,
+      groupsSectionHidden: false,
+      linksSectionHidden: false
     }});
     
     toast.success('تم مسح جميع البيانات بنجاح');
