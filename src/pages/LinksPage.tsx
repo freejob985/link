@@ -23,6 +23,7 @@ import {
   EyeSlashIcon
 } from '@heroicons/react/24/outline';
 import { TagInput } from '../components/TagInput';
+import { ExcelImportExport } from '../components/ExcelImportExport';
 import { aiService } from '../services/ai';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
@@ -1516,6 +1517,11 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Excel Import/Export Section */}
+      <div className="px-4 py-3">
+        <ExcelImportExport />
       </div>
 
       {/* البحث والتصفية */}

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { Link, Category, Subcategory, Group, ClickRecord, AppData, Theme } from '../types';
 import { storageService } from '../services/storage';
+import { excelService, ExcelImportResult } from '../services/excel';
 import toast from 'react-hot-toast';
 
 interface AppState extends AppData {
@@ -180,6 +181,8 @@ interface AppContextValue {
   exportData: () => void;
   importData: (data: AppData) => void;
   clearAllData: () => void;
+  downloadExcelTemplate: () => void;
+  importFromExcel: (file: File) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | undefined>(undefined);
@@ -434,6 +437,95 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'TOGGLE_LINKS_SECTION' });
   };
 
+  const downloadExcelTemplate = () => {
+    try {
+      excelService.generateTemplate();
+      toast.success('تم تحميل قالب Excel بنجاح');
+    } catch (error) {
+      console.error('خطأ في تحميل القالب:', error);
+      toast.error('فشل في تحميل قالب Excel');
+    }
+  };
+
+  const importFromExcel = async (file: File) => {
+    try {
+      const result: ExcelImportResult = await excelService.parseExcelFile(file);
+      
+      if (result.errors.length > 0) {
+        // عرض الأخطاء للمستخدم
+        const errorMessage = result.errors.slice(0, 5).join('\n') + 
+          (result.errors.length > 5 ? `\n... و ${result.errors.length - 5} خطأ آخر` : '');
+        toast.error(`تم العثور على أخطاء:\n${errorMessage}`, { duration: 8000 });
+      }
+
+      // إضافة الأقسام الجديدة
+      const existingCategoryNames = new Set(state.categories.map(c => c.name));
+      const newCategories = result.categories.filter(cat => !existingCategoryNames.has(cat.name));
+      
+      newCategories.forEach(category => {
+        dispatch({ type: 'ADD_CATEGORY', payload: category });
+      });
+
+      // إضافة الأقسام الفرعية الجديدة
+      const existingSubcategoryKeys = new Set(
+        state.subcategories.map(s => `${s.categoryId}_${s.name}`)
+      );
+      const newSubcategories = result.subcategories.filter(sub => 
+        !existingSubcategoryKeys.has(`${sub.categoryId}_${sub.name}`)
+      );
+      
+      newSubcategories.forEach(subcategory => {
+        dispatch({ type: 'ADD_SUBCATEGORY', payload: subcategory });
+      });
+
+      // ربط الأقسام الفرعية بالأقسام الصحيحة
+      const categoryMap = new Map<string, string>();
+      [...state.categories, ...newCategories].forEach(cat => {
+        categoryMap.set(cat.name, cat.id);
+      });
+
+      const processedLinks = result.links.map(link => {
+        // تحديث categoryId إذا لزم الأمر
+        const correctCategoryId = categoryMap.get(
+          [...state.categories, ...newCategories].find(c => c.id === link.categoryId)?.name || ''
+        ) || link.categoryId;
+
+        // تحديث subcategoryId إذا لزم الأمر
+        let correctSubcategoryId = link.subcategoryId;
+        if (link.subcategoryId) {
+          const subcategory = [...state.subcategories, ...newSubcategories].find(s => s.id === link.subcategoryId);
+          if (subcategory) {
+            const correctSub = [...state.subcategories, ...newSubcategories].find(s => 
+              s.name === subcategory.name && s.categoryId === correctCategoryId
+            );
+            correctSubcategoryId = correctSub?.id;
+          }
+        }
+
+        return {
+          ...link,
+          categoryId: correctCategoryId,
+          subcategoryId: correctSubcategoryId
+        };
+      });
+
+      // إضافة الروابط الجديدة
+      const existingUrls = new Set(state.links.map(l => l.url));
+      const newLinks = processedLinks.filter(link => !existingUrls.has(link.url));
+      
+      newLinks.forEach(link => {
+        dispatch({ type: 'ADD_LINK', payload: link });
+      });
+
+      const successMessage = `تم استيراد ${newLinks.length} رابط جديد و ${newCategories.length} قسم جديد و ${newSubcategories.length} قسم فرعي جديد`;
+      toast.success(successMessage);
+
+    } catch (error) {
+      console.error('خطأ في استيراد Excel:', error);
+      toast.error('فشل في استيراد ملف Excel: ' + (error as Error).message);
+    }
+  };
+
   const value: AppContextValue = {
     state,
     dispatch,
@@ -458,7 +550,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     hideSplash,
     exportData,
     importData,
-    clearAllData
+    clearAllData,
+    downloadExcelTemplate,
+    importFromExcel
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
