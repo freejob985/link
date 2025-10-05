@@ -197,7 +197,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
 
         {/* Main content */}
         <main className={`flex-1 transition-all duration-300 overflow-hidden w-full ${state.sidebarCollapsed ? 'lg:mr-0' : 'lg:mr-64'} ${sidebarOpen ? 'mr-64' : ''}`}>
-          <div className="w-full h-full">
+          <div className="main-content-wrapper w-full h-full max-w-none mr-1 pr-1">
             {children}
           </div>
         </main>

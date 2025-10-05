@@ -116,6 +116,94 @@ html, body {
   }
 }
 
+/* إزالة المساحة الفارغة بين المحتوى والشريط الجانبي */
+.main-content {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* إزالة المساحة الزائدة */
+.container {
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* تحسين التخطيط */
+.flex {
+  gap: 0 !important;
+}
+
+/* إزالة المساحة في الشبكة */
+.grid {
+  gap: 0.5rem !important;
+}
+
+/* إزالة المساحة في الأعمدة */
+.space-x-4 > :not([hidden]) ~ :not([hidden]) {
+  margin-right: 0.5rem !important;
+}
+
+.space-x-2 > :not([hidden]) ~ :not([hidden]) {
+  margin-right: 0.25rem !important;
+}
+
+/* إضافة تباعد مناسب بين المحتوى والقائمة الجانبية */
+.h-screen {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* تباعد مناسب للمحتوى الرئيسي */
+.flex-1 {
+  margin-right: 0.25rem !important;
+  padding-right: 0.25rem !important;
+}
+
+/* تباعد مناسب للشبكة */
+.grid {
+  margin-right: 0.25rem !important;
+  padding-right: 0.25rem !important;
+}
+
+/* تباعد مناسب للعناصر */
+.w-full {
+  margin-right: 0.25rem !important;
+  padding-right: 0.25rem !important;
+}
+
+/* تباعد مناسب للبطاقات */
+.rounded-lg {
+  margin-right: 0.125rem !important;
+}
+
+/* تقليل المسافة بين المحتوى والقائمة */
+.main-content-wrapper {
+  margin-right: 0.125rem !important;
+  padding-right: 0.125rem !important;
+}
+
+/* تحسين التباعد في الشبكة */
+.grid {
+  gap: 0.25rem !important;
+}
+
+/* تحسين قسم Excel */
+.excel-section {
+  gap: 0.5rem !important;
+}
+
+.excel-section button {
+  margin: 0.125rem !important;
+  padding: 0.375rem 0.75rem !important;
+  font-size: 0.875rem !important;
+}
+
+/* تحسين التباعد في أزرار Excel */
+.excel-buttons {
+  gap: 0.5rem !important;
+}
+
 /* تحسين الطباعة */
 @media print {
   .no-print {

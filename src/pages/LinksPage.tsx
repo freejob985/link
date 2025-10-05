@@ -1452,11 +1452,11 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 w-full" onContextMenu={handleContextMenu}>
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 w-full mr-1 pr-1" onContextMenu={handleContextMenu}>
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-3">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-4 space-x-reverse">
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-2 py-2">
+        <div className="flex justify-between items-center max-w-full">
+          <div className="flex items-center space-x-2 space-x-reverse flex-1 min-w-0">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white font-cairo">
             إدارة الروابط
           </h1>
@@ -1477,12 +1477,12 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               </span>
             )}
           </div>
-          <div className="flex items-center space-x-4 space-x-reverse">
+          <div className="flex items-center space-x-2 space-x-reverse flex-shrink-0">
             {/* زر العودة للحالة السابقة - يظهر فقط في العرض المبسط */}
             {state.minimalView && state.previousViewState && (
               <button
                 onClick={restorePreviousView}
-                className="bg-indigo-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-indigo-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-indigo-700 transition-all duration-200 font-tajawal text-sm"
                 title="العودة للحالة السابقة (Ctrl+R)"
               >
                 <ChevronLeftIcon className="h-5 w-5 ml-2" />
@@ -1495,53 +1495,53 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               <>
                 <button
                   onClick={handleAddCategory}
-                  className="bg-orange-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-orange-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-orange-700 transition-all duration-200 font-tajawal text-sm"
                 >
-                  <FolderPlusIcon className="h-5 w-5 ml-2" />
-                  إضافة أقسام رئيسية
+                  <FolderPlusIcon className="h-4 w-4 ml-1" />
+                  إضافة أقسام
                 </button>
-            <button
-              onClick={handleAddSampleData}
-              className="bg-green-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-green-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              <PlusIcon className="h-5 w-5 ml-2" />
-              إضافة بيانات تجريبية
-            </button>
-            <button
-              onClick={handleClearAllData}
-              className="bg-red-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-red-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              <svg className="h-5 w-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              مسح جميع البيانات
-            </button>
-            <button
-              onClick={handleAddSubcategory}
-              className="bg-teal-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-teal-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              <FolderPlusIcon className="h-5 w-5 ml-2" />
-              إضافة أقسام فرعية
-            </button>
-            <button
-              onClick={() => setShowMultiLinkForm(true)}
-              className="bg-green-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-green-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              <PlusIcon className="h-5 w-5 ml-2" />
-              إضافة روابط متعددة
-            </button>
-            <button
-              onClick={() => setShowForm(true)}
-              className="bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-blue-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              <PlusIcon className="h-5 w-5 ml-2" />
-              إضافة رابط
-            </button>
+                <button
+                  onClick={handleAddSampleData}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-green-700 transition-all duration-200 font-tajawal text-sm"
+                >
+                  <PlusIcon className="h-4 w-4 ml-1" />
+                  بيانات تجريبية
+                </button>
+                <button
+                  onClick={handleClearAllData}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-red-700 transition-all duration-200 font-tajawal text-sm"
+                >
+                  <svg className="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  مسح البيانات
+                </button>
+                <button
+                  onClick={handleAddSubcategory}
+                  className="bg-teal-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-teal-700 transition-all duration-200 font-tajawal text-sm"
+                >
+                  <FolderPlusIcon className="h-4 w-4 ml-1" />
+                  أقسام فرعية
+                </button>
+                <button
+                  onClick={() => setShowMultiLinkForm(true)}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-green-700 transition-all duration-200 font-tajawal text-sm"
+                >
+                  <PlusIcon className="h-4 w-4 ml-1" />
+                  روابط متعددة
+                </button>
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition-all duration-200 font-tajawal text-sm"
+                >
+                  <PlusIcon className="h-4 w-4 ml-1" />
+                  إضافة رابط
+                </button>
                 <button
                   onClick={handleAddGroup}
-                  className="bg-purple-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-purple-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-purple-700 transition-all duration-200 font-tajawal text-sm"
                 >
-                  <TagIcon className="h-5 w-5 ml-2" />
+                  <TagIcon className="h-4 w-4 ml-1" />
                   إضافة مجموعة
                 </button>
               </>
@@ -1552,15 +1552,15 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
 
       {/* Excel Import/Export Section - يظهر فقط في العرض العادي */}
       {!state.minimalView && (
-        <div className="px-4 py-3">
+        <div className="px-2 py-1">
           <ExcelImportExport />
         </div>
       )}
 
       {/* البحث والتصفية */}
       {!state.linksSectionHidden && (
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-2 py-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
           <div className="relative">
             <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-3 text-gray-400" />
             <input
@@ -1627,11 +1627,11 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
 
       {/* فلتر البحث المخصص للعرض المبسط */}
       {state.minimalView && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 shadow-sm border-b border-blue-200 dark:border-blue-700 px-4 py-4">
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-blue-50 dark:bg-blue-900/20 shadow-sm border-b border-blue-200 dark:border-blue-700 px-2 py-3">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center">
-              <EyeSlashIcon className="h-5 w-5 text-blue-600 ml-2" />
-              <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 font-cairo">
+              <EyeSlashIcon className="h-4 w-4 text-blue-600 ml-2" />
+              <h3 className="text-base font-semibold text-blue-800 dark:text-blue-200 font-cairo">
                 عرض مبسط - الروابط والمجموعات فقط
               </h3>
             </div>
@@ -1641,7 +1641,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="relative">
               <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-3 text-blue-500" />
               <input
@@ -1788,12 +1788,12 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
       )}
 
       {/* قائمة الروابط */}
-      <div className="flex-1 overflow-y-auto p-4 w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-7 gap-4 w-full">
+      <div className="flex-1 overflow-y-auto p-2 w-full mr-1 pr-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-7 gap-3 w-full mr-1 pr-1">
           {paginatedLinks.map(link => (
             <div 
               key={link.id} 
-              className={`rounded-lg shadow p-6 border transition-all duration-300 cursor-pointer hover:scale-105 transform group ${
+              className={`rounded-lg shadow p-4 border transition-all duration-300 cursor-pointer hover:scale-105 transform group ${
                 link.isHighlighted 
                   ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400 dark:border-yellow-500 shadow-yellow-200 dark:shadow-yellow-800 hover:shadow-yellow-300 dark:hover:shadow-yellow-700' 
                   : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-600'
@@ -1803,31 +1803,31 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
                 window.open(link.url, '_blank', 'noopener,noreferrer');
               }}
             >
-              <div className="flex justify-between items-start mb-3">
+              <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center flex-1 min-w-0">
                   <img 
                     src={link.icon || 'https://cdn-icons-png.flaticon.com/128/6928/6928929.png'} 
                     alt={link.name}
-                    className="w-10 h-10 rounded-lg ml-3 object-cover flex-shrink-0"
+                    className="w-8 h-8 rounded-lg ml-2 object-cover flex-shrink-0"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = 'https://cdn-icons-png.flaticon.com/128/6928/6928929.png';
                     }}
                   />
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white font-tajawal line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex-1 min-w-0">
+                  <h3 className="text-xs font-semibold text-gray-900 dark:text-white font-tajawal line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex-1 min-w-0">
                     {link.isHighlighted ? highlightText(link.name, searchTerm) : link.name}
                   </h3>
                 </div>
-                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 font-tajawal flex-shrink-0">
-                  <ChartBarIcon className="h-4 w-4 ml-1" />
+                <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 font-tajawal flex-shrink-0">
+                  <ChartBarIcon className="h-3 w-3 ml-1" />
                   {link.clicks}
                 </div>
               </div>
 
-              <p className="text-gray-600 dark:text-gray-300 text-xs mb-3 font-tajawal line-clamp-2">
+              <p className="text-gray-600 dark:text-gray-300 text-xs mb-2 font-tajawal line-clamp-2">
                 {link.isHighlighted ? highlightText(link.description || 'لا يوجد وصف', searchTerm) : (link.description || 'لا يوجد وصف')}
               </p>
 
-              <div className="text-xs text-gray-500 dark:text-gray-400 mb-3 font-tajawal">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-tajawal">
                 {getCategoryName(link.categoryId)}
                 {getSubcategoryName(link.subcategoryId) && (
                   <span> → {getSubcategoryName(link.subcategoryId)}</span>
@@ -1835,7 +1835,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               </div>
 
               {link.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-4">
+                <div className="flex flex-wrap gap-1 mb-2">
                   {link.tags.map((tag, index) => (
                     <span
                       key={index}
@@ -1851,7 +1851,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
                 </div>
               )}
 
-              <div className="flex justify-between items-center pt-3 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex space-x-1 space-x-reverse">
                   <button
                     onClick={(e) => {
