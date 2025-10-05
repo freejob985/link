@@ -10,6 +10,11 @@ interface AppState extends AppData {
   sidebarCollapsed: boolean;
   groupsSectionHidden: boolean; // إخفاء قسم المجموعات بالكامل
   linksSectionHidden: boolean; // إخفاء قسم إدارة الروابط بالكامل
+  minimalView: boolean; // عرض مبسط - إخفاء كل شيء إلا الروابط والمجموعات وفلاتر البحث
+  previousViewState: {
+    groupsSectionHidden: boolean;
+    linksSectionHidden: boolean;
+  } | null; // حفظ الحالة السابقة للعودة إليها
 }
 
 type AppAction = 
@@ -18,6 +23,8 @@ type AppAction =
   | { type: 'TOGGLE_SIDEBAR' }
   | { type: 'TOGGLE_GROUPS_SECTION' }
   | { type: 'TOGGLE_LINKS_SECTION' }
+  | { type: 'TOGGLE_MINIMAL_VIEW' }
+  | { type: 'RESTORE_PREVIOUS_VIEW' }
   | { type: 'SET_DATA'; payload: AppData }
   | { type: 'ADD_LINK'; payload: Link }
   | { type: 'UPDATE_LINK'; payload: Link }
@@ -40,6 +47,8 @@ const initialState: AppState = {
   sidebarCollapsed: true,
   groupsSectionHidden: false,
   linksSectionHidden: false,
+  minimalView: false,
+  previousViewState: null,
   links: [],
   categories: [],
   subcategories: [],
@@ -59,6 +68,40 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, groupsSectionHidden: !state.groupsSectionHidden };
     case 'TOGGLE_LINKS_SECTION':
       return { ...state, linksSectionHidden: !state.linksSectionHidden };
+    case 'TOGGLE_MINIMAL_VIEW':
+      if (!state.minimalView) {
+        // تفعيل العرض المبسط - حفظ الحالة الحالية
+        return {
+          ...state,
+          minimalView: true,
+          previousViewState: {
+            groupsSectionHidden: state.groupsSectionHidden,
+            linksSectionHidden: state.linksSectionHidden
+          },
+          groupsSectionHidden: false, // إظهار المجموعات
+          linksSectionHidden: false   // إظهار فلاتر البحث
+        };
+      } else {
+        // إلغاء العرض المبسط - العودة للحالة السابقة
+        return {
+          ...state,
+          minimalView: false,
+          groupsSectionHidden: state.previousViewState?.groupsSectionHidden ?? false,
+          linksSectionHidden: state.previousViewState?.linksSectionHidden ?? false,
+          previousViewState: null
+        };
+      }
+    case 'RESTORE_PREVIOUS_VIEW':
+      if (state.previousViewState) {
+        return {
+          ...state,
+          minimalView: false,
+          groupsSectionHidden: state.previousViewState.groupsSectionHidden,
+          linksSectionHidden: state.previousViewState.linksSectionHidden,
+          previousViewState: null
+        };
+      }
+      return state;
     case 'SET_DATA':
       return { ...state, ...action.payload };
     case 'ADD_LINK':
@@ -177,6 +220,8 @@ interface AppContextValue {
   toggleSidebar: () => void;
   toggleGroupsSection: () => void;
   toggleLinksSection: () => void;
+  toggleMinimalView: () => void;
+  restorePreviousView: () => void;
   hideSplash: () => void;
   exportData: () => void;
   importData: (data: AppData) => void;
@@ -208,6 +253,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const linksSectionHidden = localStorage.getItem('linksSectionHidden') === 'true';
         if (linksSectionHidden) {
           dispatch({ type: 'TOGGLE_LINKS_SECTION' });
+        }
+        
+        const minimalView = localStorage.getItem('minimalView') === 'true';
+        if (minimalView) {
+          dispatch({ type: 'TOGGLE_MINIMAL_VIEW' });
         }
         
         const hasSeenSplash = localStorage.getItem('hasSeenSplash') === 'true';
@@ -249,6 +299,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem('linksSectionHidden', state.linksSectionHidden.toString());
   }, [state.linksSectionHidden]);
+
+  // حفظ حالة العرض المبسط
+  useEffect(() => {
+    localStorage.setItem('minimalView', state.minimalView.toString());
+  }, [state.minimalView]);
   const addLink = (linkData: Omit<Link, 'id' | 'clicks' | 'createdAt' | 'updatedAt'>) => {
     const link: Link = {
       ...linkData,
@@ -437,6 +492,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'TOGGLE_LINKS_SECTION' });
   };
 
+  const toggleMinimalView = () => {
+    dispatch({ type: 'TOGGLE_MINIMAL_VIEW' });
+    if (!state.minimalView) {
+      toast.success('تم تفعيل العرض المبسط');
+    } else {
+      toast.success('تم العودة للعرض العادي');
+    }
+  };
+
+  const restorePreviousView = () => {
+    dispatch({ type: 'RESTORE_PREVIOUS_VIEW' });
+    toast.success('تم العودة للحالة السابقة');
+  };
+
   const downloadExcelTemplate = () => {
     try {
       excelService.generateTemplate();
@@ -547,6 +616,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleSidebar,
     toggleGroupsSection,
     toggleLinksSection,
+    toggleMinimalView,
+    restorePreviousView,
     hideSplash,
     exportData,
     importData,

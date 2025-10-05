@@ -33,7 +33,7 @@ interface LinksPageProps {
 }
 
 export function LinksPage({ onNavigate }: LinksPageProps = {}) {
-  const { state, addLink, updateLink, deleteLink, recordClick, addCategory, addSubcategory, addGroup, exportData, importData, toggleGroupVisibility, toggleGroupsSection, toggleLinksSection, clearAllData } = useApp();
+  const { state, addLink, updateLink, deleteLink, recordClick, addCategory, addSubcategory, addGroup, exportData, importData, toggleGroupVisibility, toggleGroupsSection, toggleLinksSection, toggleMinimalView, restorePreviousView, clearAllData } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [editingLink, setEditingLink] = useState<Link | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -227,6 +227,20 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
         onNavigate?.('stats');
       }
       
+      // Ctrl/Cmd + M للعرض المبسط
+      if ((event.ctrlKey || event.metaKey) && event.key === 'm') {
+        event.preventDefault();
+        toggleMinimalView();
+      }
+      
+      // Ctrl/Cmd + R للعودة للحالة السابقة
+      if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
+        event.preventDefault();
+        if (state.minimalView && state.previousViewState) {
+          restorePreviousView();
+        }
+      }
+      
       // Ctrl/Cmd + 5 لإخفاء/إظهار قسم إدارة الروابط
       if ((event.ctrlKey || event.metaKey) && event.key === '5') {
         event.preventDefault();
@@ -272,7 +286,7 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onNavigate, toggleLinksSection, toggleGroupsSection]);
+  }, [onNavigate, toggleLinksSection, toggleGroupsSection, toggleMinimalView, restorePreviousView, state.minimalView, state.previousViewState]);
 
 
   // تصفية الروابط مع التمييز
@@ -1464,13 +1478,28 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
             )}
           </div>
           <div className="flex items-center space-x-4 space-x-reverse">
-            <button
-              onClick={handleAddCategory}
-              className="bg-orange-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-orange-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              <FolderPlusIcon className="h-5 w-5 ml-2" />
-              إضافة أقسام رئيسية
-            </button>
+            {/* زر العودة للحالة السابقة - يظهر فقط في العرض المبسط */}
+            {state.minimalView && state.previousViewState && (
+              <button
+                onClick={restorePreviousView}
+                className="bg-indigo-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-indigo-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                title="العودة للحالة السابقة (Ctrl+R)"
+              >
+                <ChevronLeftIcon className="h-5 w-5 ml-2" />
+                العودة للحالة السابقة
+              </button>
+            )}
+
+            {/* الأزرار الأخرى - تظهر فقط في العرض العادي */}
+            {!state.minimalView && (
+              <>
+                <button
+                  onClick={handleAddCategory}
+                  className="bg-orange-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-orange-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  <FolderPlusIcon className="h-5 w-5 ml-2" />
+                  إضافة أقسام رئيسية
+                </button>
             <button
               onClick={handleAddSampleData}
               className="bg-green-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-green-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
@@ -1508,21 +1537,25 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
               <PlusIcon className="h-5 w-5 ml-2" />
               إضافة رابط
             </button>
-            <button
-              onClick={handleAddGroup}
-              className="bg-purple-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-purple-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              <TagIcon className="h-5 w-5 ml-2" />
-              إضافة مجموعة
-            </button>
+                <button
+                  onClick={handleAddGroup}
+                  className="bg-purple-600 text-white px-6 py-3 rounded-xl flex items-center hover:bg-purple-700 transition-all duration-200 font-tajawal shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  <TagIcon className="h-5 w-5 ml-2" />
+                  إضافة مجموعة
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Excel Import/Export Section */}
-      <div className="px-4 py-3">
-        <ExcelImportExport />
-      </div>
+      {/* Excel Import/Export Section - يظهر فقط في العرض العادي */}
+      {!state.minimalView && (
+        <div className="px-4 py-3">
+          <ExcelImportExport />
+        </div>
+      )}
 
       {/* البحث والتصفية */}
       {!state.linksSectionHidden && (
@@ -1590,6 +1623,82 @@ export function LinksPage({ onNavigate }: LinksPageProps = {}) {
           </div>
         </div>
       </div>
+      )}
+
+      {/* فلتر البحث المخصص للعرض المبسط */}
+      {state.minimalView && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 shadow-sm border-b border-blue-200 dark:border-blue-700 px-4 py-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center">
+              <EyeSlashIcon className="h-5 w-5 text-blue-600 ml-2" />
+              <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 font-cairo">
+                عرض مبسط - الروابط والمجموعات فقط
+              </h3>
+            </div>
+            <div className="flex items-center text-sm text-blue-600 dark:text-blue-400 font-tajawal">
+              <FunnelIcon className="h-4 w-4 ml-1" />
+              {filteredLinks.length} من {state.links.length} رابط
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="relative">
+              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-3 text-blue-500" />
+              <input
+                type="text"
+                placeholder="البحث في الروابط..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-blue-300 dark:border-blue-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-tajawal focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <select
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setSelectedSubcategory('');
+              }}
+              className="border border-blue-300 dark:border-blue-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-tajawal focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">جميع الأقسام</option>
+              {state.categories.map(category => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={selectedSubcategory}
+              onChange={(e) => setSelectedSubcategory(e.target.value)}
+              disabled={!selectedCategory}
+              className="border border-blue-300 dark:border-blue-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-tajawal disabled:opacity-50 focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">جميع الأقسام الفرعية</option>
+              {state.subcategories
+                .filter(sub => sub.categoryId === selectedCategory)
+                .map(subcategory => (
+                  <option key={subcategory.id} value={subcategory.id}>
+                    {subcategory.name}
+                  </option>
+                ))}
+            </select>
+
+            <select
+              value={selectedTag}
+              onChange={(e) => setSelectedTag(e.target.value)}
+              className="border border-blue-300 dark:border-blue-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-tajawal focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">جميع العلامات</option>
+              {allTags.map(tag => (
+                <option key={tag} value={tag}>
+                  {tag}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       )}
 
       {/* زر إظهار قسم المجموعات عندما يكون مخفياً */}

@@ -10,7 +10,9 @@ import {
   SunIcon,
   MoonIcon,
   ChevronDoubleRightIcon,
-  ChevronDoubleLeftIcon
+  ChevronDoubleLeftIcon,
+  EyeSlashIcon,
+  EyeIcon
 } from '@heroicons/react/24/outline';
 
 interface LayoutProps {
@@ -20,21 +22,25 @@ interface LayoutProps {
 }
 
 export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
-  const { state, toggleTheme, toggleSidebar } = useApp();
+  const { state, toggleTheme, toggleSidebar, toggleMinimalView } = useApp();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // إضافة اختصار لوحة المفاتيح لإخفاء/إظهار القائمة الجانبية
+  // إضافة اختصار لوحة المفاتيح لإخفاء/إظهار القائمة الجانبية والعرض المبسط
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key === 'b') {
         event.preventDefault();
         toggleSidebar();
       }
+      if (event.ctrlKey && event.key === 'm') {
+        event.preventDefault();
+        toggleMinimalView();
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [toggleSidebar]);
+  }, [toggleSidebar, toggleMinimalView]);
 
   const navigation = [
     { id: 'links', name: 'الروابط', icon: LinkIcon },
@@ -81,9 +87,23 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             </div>
 
             <div className="flex items-center space-x-4 space-x-reverse">
+              {/* زر العرض المبسط */}
+              <button
+                onClick={toggleMinimalView}
+                className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                title={state.minimalView ? 'العودة للعرض العادي (Ctrl+M)' : 'عرض مبسط - إخفاء كل شيء إلا الروابط والمجموعات (Ctrl+M)'}
+              >
+                {state.minimalView ? 
+                  <EyeIcon className="h-5 w-5" /> : 
+                  <EyeSlashIcon className="h-5 w-5" />
+                }
+              </button>
+              
+              {/* زر الوضع المظلم */}
               <button
                 onClick={toggleTheme}
                 className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                title={state.theme === 'light' ? 'تفعيل الوضع المظلم' : 'تفعيل الوضع المضيء'}
               >
                 {state.theme === 'light' ? 
                   <MoonIcon className="h-5 w-5" /> : 
