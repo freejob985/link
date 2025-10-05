@@ -7,4 +7,17 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  build: {
+    rollupOptions: {
+      external: [],
+      output: {
+        manualChunks: undefined,
+      },
+    },
+    target: 'esnext',
+    minify: 'terser',
+  },
+  server: {
+    port: 3000,
+  },
 });
